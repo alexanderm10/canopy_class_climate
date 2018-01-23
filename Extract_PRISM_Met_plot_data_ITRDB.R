@@ -46,8 +46,8 @@ map("state", plot=T,lty="solid", col="gray30", lwd=1.5)
 plot(site.loc, pch=19, add=T, cex=0.5, col="blue")
 
 # ------------------------------------
-
-
+# saving ITRDB site locations for a quick map
+write.csv(site.loc, file = "processed_data/ITRDB_site_locations.csv", row.names=F)
 # ------------------------------------
 # Set up & extract the PRISM data
 # ------------------------------------

@@ -69,7 +69,8 @@ site.loc <- SpatialPointsDataFrame(coords=site.dat[,c("longitude", "latitude")],
 map("state", plot=T,lty="solid", col="gray30", lwd=1.5)
 plot(site.loc, pch=19, add=T, cex=0.5, col="blue")
 # ------------------------------------
-
+# saving ecology site locations for a quick map
+write.csv(site.loc, file = "processed_data/ecology_site_locations.csv", row.names=F)
 
 # ------------------------------------
 # Set up & extract the PRISM data
