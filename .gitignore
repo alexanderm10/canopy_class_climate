@@ -1,0 +1,17 @@
+input_data/
+Neil_data/
+old_extraction_scripts/
+processed_data/
+ITRDB_data/
+GAM_analysis/ch2_multiple_limiting_factors/climate_data
+GAM_analysis/ch2_multiple_limiting_factors/input_files
+GAM_analysis/ch2_multiple_limiting_factors/processed_data
+GAM_analysis/ch2_multiple_limiting_factors/raw_input_files
+GAM_analysis/ch2_multiple_limiting_factors/RWL
+
+*.Rdata
+*.rwl
+*.rw
+*.pptx
+*.png
+*.rds
