@@ -12,36 +12,10 @@ library(raster); library(maps)
 # ------------------------------------
 # Load file with site names & locations & turn it into a spatial file
 # ------------------------------------
-plot.dat.ross <- read.csv("~/Dropbox/PhD/Carbon Research/Calloc_TreeRingNPP/raw_input_files/DOE_plus_valles.csv")
+plot.dat.neil <- read.csv("input_data/neil_ne_plots.csv", header=T)
 
-names(plot.dat.ross)
-plot.dat.ross2 <- plot.dat.ross[,names(plot.dat.ross) %in% c("PlotID", "Site..Tower.", "date.sample", "latitude", "longitude", "elevation")]
-names(plot.dat.ross2) <- c("plotID", "site.name", "date.sample", "latitude", "longitude", "elevation")
-plot.dat.ross2$owner <- as.factor("alexander_et_al")
-summary(plot.dat.ross2)
-# Loading in Christy's data
-plot.dat.christy <- read.csv("input_data/christy_phd_plots.csv")
-
-# looking at names of Christy's plots
-names(plot.dat.christy)
-head(plot.dat.christy)
-
-plot.dat.christy2 <- plot.dat.christy[,names(plot.dat.christy) %in% c("plotID", "site.name", "date.sample", "latitude", "longitude", "elevation")]
-plot.dat.christy2$owner <- as.factor("rollinson")
-# Loading in Neil's plot level data
-plot.dat.neil <- read.csv("input_data/neil_ecology_plots.csv")
 names(plot.dat.neil)
-
-plot.dat.neil2 <- plot.dat.neil[,c("Site", "Site.Code", "LAT", "LONG")]
-names(plot.dat.neil2) <- c("site.name", "Site.Code", "latitude", "longitude")
-plot.dat.neil2$owner <- as.factor("pederson")
-
-
-#Combining plots together  
-
-plot.dat.rc <- rbind(plot.dat.ross2, plot.dat.christy2)
-plot.dat.rc$Site.Code <- as.factor(substr(plot.dat.rc$plotID, 1,2))
-plot.dat <- merge(plot.dat.rc, plot.dat.neil2, all.x=T, all.y=T)
+plot.dat <- plot.dat.neil
 summary(plot.dat)
 
 
@@ -49,7 +23,7 @@ summary(plot.dat)
 #  1) We have lat/lon for missing plots
 #  2) We're saving ourselves a lot of time in the extraction
 #  -- Note: this makes the assumption that there are no microclimatic differences among sites
-site.dat <- aggregate(plot.dat[,c("latitude", "longitude", "elevation")],
+site.dat <- aggregate(plot.dat[,c("latitude", "longitude")],
                       by=plot.dat[,c("site.name", "Site.Code")], 
                       FUN=mean, na.rm=T)
 
@@ -73,7 +47,7 @@ map("state", plot=T,lty="solid", col="gray30", lwd=1.5)
 plot(site.loc, pch=19, add=T, cex=0.5, col="blue")
 # ------------------------------------
 # saving ecology site locations for a quick map
-write.csv(site.loc, file = "processed_data/ecology_site_locations.csv", row.names=F)
+write.csv(site.loc, file = "processed_data/NE_site_locations.csv", row.names=F)
 
 # ------------------------------------
 # Set up & extract the PRISM data
@@ -144,11 +118,11 @@ for(j in 1:length(dir.tmean)){
 	}
 }
 summary(sites.met)
-write.csv(sites.met, "processed_data/prism_met_sites.csv", row.names=F)
+write.csv(sites.met, "processed_data/prism_met_NE_sites.csv", row.names=F)
 # ------------------------
 # ------------------------------------
 
-sites.met <- read.csv("processed_data/prism_met_sites.csv")
+sites.met <- read.csv("processed_data/prism_met_NE_sites.csv")
 
 # ------------------------------------
 # Add in the lags & re-save everything
@@ -159,22 +133,22 @@ summary(sites.met)
 
 for(s in unique(sites.met$Site.Name)){
   for(y in (min(sites.met[sites.met$Site.Name==s, "Year"])+1):max(sites.met[sites.met$Site.Name==s, "Year"])){
-  	print(paste0("Processing Year: ", y))
+  	# print(paste0("Processing Year: ", y))
   	# Making a temporary dataframe with the lages
-  	df.temp <- data.frame(tmean = sites.met[sites.met$Year==(y-1) & 
+  	df.temp <- data.frame(tmean = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
   	                                        !substr(sites.met$Month,1,1)=="p", "tmean"],
-  	                      tmax  = sites.met[sites.met$Year==(y-1) & 
+  	                      tmax  = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
   	                                        !substr(sites.met$Month,1,1)=="p", "tmax"],
-  	                      tmin  = sites.met[sites.met$Year==(y-1) & 
+  	                      tmin  = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
   	                                        !substr(sites.met$Month,1,1)=="p", "tmin"],
-  	                      ppt   = sites.met[sites.met$Year==(y-1) & 
+  	                      ppt   = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
   	                                        !substr(sites.met$Month,1,1)=="p", "ppt"],
   	                      Year  = y,
-  	                      Month = paste0("p", sites.met[sites.met$Year==(y-1) & 
+  	                      Month = paste0("p", sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
   	                                        !substr(sites.met$Month,1,1)=="p", "Month"]),
-  	                      Site.Code = sites.met[sites.met$Year==(y-1) & 
+  	                      Site.Code = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
   	                                        !substr(sites.met$Month,1,1)=="p", "Site.Code"],
-  	                      Site.Name = sites.met[sites.met$Year==(y-1) & 
+  	                      Site.Name = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
   	                                        !substr(sites.met$Month,1,1)=="p", "Site.Name"]
   	                      )
   
@@ -202,10 +176,10 @@ unique(sites.met$Month.Order)
 unique(sites.met$Month.Name)
 # -------------
 
-write.csv(sites.met, "processed_data/prism_met_sites_lags.csv", row.names=F)
+write.csv(sites.met, "processed_data/prism_met_NE_sites_lags.csv", row.names=F)
 # ------------------------------------
 
-sites.met <- read.csv("processed_data/prism_met_sites_lags.csv")
+sites.met <- read.csv("processed_data/prism_met_NE_sites_lags.csv")
 sites.met$Month.Order <- as.ordered(sites.met$Month.Order)
 # ------------------------------------
 # Convert to wide format
@@ -216,6 +190,9 @@ library(reshape2)
 sites.met$Year <- as.ordered(sites.met$Year)
 summary(sites.met)
 
+# # THe lags are getting sestupled for some reason...
+# sites.met[sites.met$Site.Name=="gillbrook" & sites.met$Year==2000 & sites.met$Month=="p01",]
+
 sites.met$Month.Name <- factor(sites.met$Month.Name, levels=c("pJan", "pFeb", "pMar", "pApr", "pMay", "pJun", "pJul", "pAug", "pSep", "pOct", "pNov", "pDec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
 
 # ---------------------
@@ -224,7 +201,7 @@ sites.met$Month.Name <- factor(sites.met$Month.Name, levels=c("pJan", "pFeb", "p
 tmean.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","tmean")], Site.Name+Year~Month.Name)
 summary(tmean.wide)
 
-write.csv(tmean.wide, "processed_data/prism_met_sites_wide_tmean.csv", row.names=F)
+write.csv(tmean.wide, "processed_data/prism_met_NE_sites_wide_tmean.csv", row.names=F)
 # ---------------------
 
 # ---------------------
@@ -233,7 +210,7 @@ write.csv(tmean.wide, "processed_data/prism_met_sites_wide_tmean.csv", row.names
 tmax.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","tmax")], Site.Name+Year~Month.Name)
 summary(tmax.wide)
 
-write.csv(tmax.wide, "processed_data/prism_met_sites_wide_tmax.csv", row.names=F)
+write.csv(tmax.wide, "processed_data/prism_met_NE_sites_wide_tmax.csv", row.names=F)
 # ---------------------
 
 # ---------------------
@@ -242,7 +219,7 @@ write.csv(tmax.wide, "processed_data/prism_met_sites_wide_tmax.csv", row.names=F
 tmin.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","tmin")], Site.Name+Year~Month.Name)
 summary(tmin.wide)
 
-write.csv(tmin.wide, "processed_data/prism_met_sites_wide_tmin.csv", row.names=F)
+write.csv(tmin.wide, "processed_data/prism_met_NE_sites_wide_tmin.csv", row.names=F)
 # ---------------------
 
 # ---------------------
@@ -251,7 +228,7 @@ write.csv(tmin.wide, "processed_data/prism_met_sites_wide_tmin.csv", row.names=F
 ppt.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","ppt")], Site.Name+Year~Month.Name)
 summary(ppt.wide)
 
-write.csv(ppt.wide, "processed_data/prism_met_sites_wide_ppt.csv", row.names=F)
+write.csv(ppt.wide, "processed_data/prism_met_NE_sites_wide_ppt.csv", row.names=F)
 # ---------------------
 
 # ------------------------------------
