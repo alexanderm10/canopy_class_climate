@@ -60,7 +60,7 @@ summary(test)
 
 
 # Get a list of what predictors & responses I'm using
-predictors.all <- c("tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot",  "spp", "Site", "Year", "PlotID") 
+predictors.all <- c("tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID") 
 
 # Getting rid of observations that have NAs in the important variables
 test <- test[complete.cases(test[,predictors.all]),]
@@ -68,14 +68,16 @@ test <- test[test$Live.Dead=="LIVE" & !test$Canopy.Class=="F",]
 
 # Subsetting to a set of species that we have enough data to feel good about
 #species.use <- c("TSCA", "QURU", "ACRU", "BEAL", "ACSA", "LITU", "QUAL", "CAOV", "CACO", "CATE", "JUVI", "QUVE", "PCRU", "THOC", "PIST")
-spp.use <- c("ACRU", "ACSA", "BETULA", "CARYA", "FAGR", "FRAX", "PIST", "QUAL", "QURU", "QUVE", "SAAL", "TSCA", "ULRU", "PCRU", "THOC", "LITU", "JUVI")
+# spp.use <- c("ACRU", "ACSA", "BETULA", "CARYA", "FAGR", "FRAX", "PIST", "QUAL", "QURU", "QUVE", "SAAL", "TSCA", "ULRU", "PCRU", "THOC", "LITU", "JUVI")
 
-test <- test[test$group %in% group.use,]
+# Looking at select major species for these sites
+spp.use <- c("TSCA", "ACRU", "QURU", "FAGR")
+test <- test[test$Species %in% spp.use,]
 
 summary(test)
 
-par(new=F)
-plot(test[test$TreeID=="MMA003", "BA.inc"]~ test[test$TreeID=="MMA003","Year"], type="l")
+# par(new=F)
+# plot(test[test$TreeID=="MMA003", "BA.inc"]~ test[test$TreeID=="MMA003","Year"], type="l")
 
 
 test$log.dbh <- log(test$dbh.recon)
@@ -104,14 +106,14 @@ summary(test$Canopy.Class)
 
 # test2 <- test[test$group %in% c("QURU", "ACRU") & test$Year>=1980,]
 # test2 <- test[test$group %in% c("QURU", "ACRU"),]
-test2 <- test[test$Site %in% c("Morgan Monroe State Park", "Harvard"), ]
+# test2 <- test[test$Site %in% c("Morgan Monroe State Park", "Harvard"), ]
 # test2$log.dbh <- log(test2$dbh.recon)
 # summary(test2)
 
 
 summary(test)
 test[test$BA.inc==0, "BA.inc"] <- 1e-6
-save(test, file="ch2_combined_data_use.Rdata")
+save(test, file="overstory_understory_combined_data_use.Rdata")
 # test.gam3 <- test
 # test.gam3$Canopy.Class <- recode(test.gam3$Canopy.Class, "'C' = 'D'")
 # summary(test.gam3)
@@ -124,7 +126,7 @@ gam.null <- gam(log(BA.inc)~ s(tmean, k=3) +
                   s(precip, k=3) +
                   s(dbh.recon, k=3) +
                   s(Year, k=4, by=PlotID)+
-                  Site + PlotID  + TreeID + Canopy.Class + group,
+                  Site.Code + PlotID  + TreeID + Canopy.Class + Species,
                 # random=list(Site=~1, PlotID=~1, TreeID=~1),
                 data=test)    
 
@@ -133,11 +135,11 @@ summary(gam.null)$dev.expl # explained deviance
 anova(gam.null)
 AIC(gam.null)
 
-gam1 <- gam(log(BA.inc)~ s(tmean, k=3, by=group) +
-              s(precip, k=3, by=group) +
-              s(dbh.recon, k=3, by=group) +
+gam1 <- gam(log(BA.inc)~ s(tmean, k=3, by=spp.cc) +
+              s(precip, k=3, by=spp.cc) +
+              s(dbh.recon, k=3, by=spp.cc) +
               s(Year, k=4, by=PlotID)+
-              Site + PlotID  + TreeID + Canopy.Class + group,
+              Site.Code + PlotID  + TreeID + Canopy.Class + Species,
             # random=list(Site=~1, PlotID=~1, TreeID=~1),
             data=test)
 
@@ -157,7 +159,7 @@ AIC(gam1)
 # data=test2)
 
 
-save(gam1, file="processed_data/gam_results/gam1_climate_by_species.Rdata")
+save(gam1, file="processed_data/gam_results/gam1_species_canopy_interactions.Rdata")
 
 # s(tmean, by=Spp.Can) + s(tmean, by=Canopy)
 # s(tmean, by=Spp) + s(tmean, by=Canopy) + s(tmean, by=Spp.Can)
@@ -167,7 +169,7 @@ gam2 <- gam(log(BA.inc)~ s(tmean, k=3, by=Canopy.Class) +
               s(precip, k=3, by=Canopy.Class) +
               s(dbh.recon, k=3, by=Canopy.Class) +
               s(Year, k=4, by=PlotID)+
-              Site + PlotID  + TreeID + Canopy.Class + group,
+              Site.Code + PlotID  + TreeID + Canopy.Class + Species,
             # random=list(Site=~1, PlotID=~1, TreeID=~1),
             data=test)
 # Look at the R-squared and explained deviance
@@ -194,11 +196,11 @@ AIC(gam2)
 # random=list(Site=~1, PlotID=~1, TreeID=~1),
 # data=test, control=list(niterEM=0, sing.tol=1e-20, opt="optim"))
 
-gam4 <- gam(log(BA.inc)~ s(tmean, k=3, by=Site) +
-              s(precip, k=3, by=Site) +
-              s(dbh.recon, k=3, by=Site) +
+gam4 <- gam(log(BA.inc)~ s(tmean, k=3, by=Species) +
+              s(precip, k=3, by=Species) +
+              s(dbh.recon, k=3, by=Species) +
               s(Year, k=4, by=PlotID)+
-              Site + PlotID  + TreeID + Canopy.Class + group,
+              Site.Code + PlotID  + TreeID + Canopy.Class + Species,
             # random=list(Site=~1, PlotID=~1, TreeID=~1),
             data=test)
 summary(gam4)$r.sq # R-squared
@@ -212,9 +214,9 @@ AIC(gam4)
 
 
 
-save(gam2, file="processed_data/gam_results/gam2_climate_by_canopyclass.Rdata") 
+save(gam2, file="processed_data/gam_results/gam2_canopyclass_only.Rdata") 
 # save(gam3, file="processed_data/gam_results/gam3_climate_by_canopyclass_interactions.Rdata")
-save(gam4, file="processed_data/gam_results/gam4_Site_level_model.Rdata") 
+save(gam4, file="processed_data/gam_results/gam4_species_only.Rdata") 
 
 
 
@@ -235,7 +237,7 @@ data <- test
 
 n.out = n
 
-new.dat <- data.frame(Model="species_response",
+new.dat <- data.frame(Model="spp.cc",
                       Extent=as.factor(paste(min(data$Year), max(data$Year), sep="-")))
 
 # Figure out which vars are numeric vs. factor
@@ -248,8 +250,8 @@ for(v in predictors.all){
 # Getting the unique values of our factor variables and adding them to the data frame
 # need to skip group & group.cc so we aren't trying to match Carya & Quercus etc
 # predictors.all <- predictors.all[!predictors.all %in% c("Species", "spp.plot")]
-predictors.all <- c("tmean", "precip", "dbh.recon", "Year", "Site", "PlotID", "TreeID", "Canopy.Class", "group")
-spline.by=c("group", "Canopy.Class", "Site", "PlotID") # the "by" terms in the models you're running
+predictors.all <- c("tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID", "spp.cc", "TreeID") 
+spline.by=c("Species", "Canopy.Class", "Site.Code", "PlotID", "spp.cc") # the "by" terms in the models you're running
 for(v in predictors.all[!predictors.all %in% vars.num & !(predictors.all %in% c("Site"))]){
   # if v is a factor, merge all unique values into the dataframe
   if(!(v %in% spline.by)){ # Only pull the full range of values for whatever the "by" term was by, otherwise everythign should have the same shape, just different intercepts
@@ -265,7 +267,7 @@ for(v in predictors.all[!predictors.all %in% vars.num & !(predictors.all %in% c(
 
 # Matching the site for the plot
 for(p in unique(new.dat$PlotID)){
-  new.dat[new.dat$PlotID==p, "Site"] <- unique(test[test$PlotID==p, "Site"])
+  new.dat[new.dat$PlotID==p, "Site"] <- unique(test[test$PlotID==p, "Site.Code"])
 }
 new.dat$Site <- as.factor(new.dat$Site)
 summary(new.dat)
@@ -291,14 +293,14 @@ write.csv(new.dat, file="processed_data/sensitivity_extaction_dataframe.csv", ro
 
 # Change which gamm you look at here!
 
-load("processed_data/gam_results/gam1_climate_by_species.Rdata")
+load("processed_data/gam_results/gam1_species_canopy_interactions.Rdata")
 n <- 100						
 # SOurce & run the function
 source("0_Calculate_GAMM_Posteriors.R")
 # Make things run faster by reducing dimensions
 new.dat2 <- new.dat
-vars.fac <- c("Site", "PlotID", "TreeID", "Canopy.Class", "group")
-var.smooth <- "group"
+vars.fac <- c("Site.Code", "PlotID", "TreeID", "Canopy.Class", "Species", "spp.cc")
+var.smooth <- "spp.cc"
 for(v in vars.fac){
   if(v == var.smooth) next # keep all levels for our "by" variable
   # Get rid of unimportant levels for everything else
@@ -317,7 +319,7 @@ g1.ci.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(g1.ci.out[,c("mean", "lwr
 spp.colors <- read.csv("spp.Colors.csv", header=T)	
 summary(spp.colors)	
 
-group.fig <- unique(g1.ci.out$group)
+group.fig <- unique(g1.ci.out$Species)
 group.fig <- group.fig[order(group.fig)]
 colors.use <- as.vector(c(paste(spp.colors[spp.colors$Species %in% group.fig, "color"])))
 
@@ -370,12 +372,12 @@ save(ci.terms.graph,file="processed_data/gam1_response_graph.Rdata")
 
 pdf("figures/prelim_figures/gam1_sensitivities_truncated_tmean.pdf", width= 13, height = 8.5)		
 ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("tmean"), ]) + 
-  facet_wrap(group~Effect) +
+  facet_wrap(Canopy.Class~Effect) +
   geom_line(aes(x=x, y=0), linetype="dotted")+
-  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=group), alpha=0.5) +
-  geom_line(aes(x=x, y=exp(mean), color=group)) +
-  scale_color_manual(values=colors.use) +
-  scale_fill_manual(values=colors.use)+
+  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=spp.cc), alpha=0.5) +
+  geom_line(aes(x=x, y=exp(mean), color=spp.cc)) +
+  #scale_color_manual(values=colors.use) +
+  #scale_fill_manual(values=colors.use)+
   theme_bw()+
   labs(x = "Climate Variable", y = expression(bold(paste("Effect on BAI (mm"^"2", 							"y"^"-1",")")))) +
   ylim(0,5)
