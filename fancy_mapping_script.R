@@ -17,7 +17,8 @@ load("processed_data/east_ITRDB.Rdata")
 sites.ITRDB <- itrdb.metadata
 #sites.obs <- read.csv("../obssiteinfo.csv")
 summary(sites.ITRDB)
-sites.ITRDB[,c("File.name", "lat", "lon")]
+sites.ITRDB[,c("ITRDB.id", "lat", "lon")]
+
 # Trimming to just the sites for ch. 2
 #ch2.sites.exp <- sites.exp[sites.exp$site.name%in% c("Harvard Forest", "Howland Forest", "Morgan Monroe State Forest","Missouri Ozark","Ohio Oak Openings"),]
 #ch2.sites.exp$state<- recode(ch2.sites.exp$site.name, "'Harvard Forest'='MA';'Howland Forest'='ME';'Morgan Monroe State Forest'='IN';'Missouri Ozark'='MO';'Ohio Oak Openings'='OH'")
@@ -57,11 +58,11 @@ summary(ch2.sites.exp[,c("site.name", "lat", "long")])
 #sites.obs[,c("Site.code", "Site", "Lat", "Long")]
 
 
-dat.map <- data.frame(Spp= c(paste(sites.ITRDB$Species.code)),
-                      Lat = c(sites.ITRDB$Latitude),
-                      Lon = c(sites.ITRDB$Longitude),
-                      type= c(rep("ITRDB", nrow(sites.ITRDB)))
-)
+dat.map <- data.frame(Spp= c(paste(sites.ITRDB$species)),
+                      Lat = c(sites.ITRDB$lat),
+                      Lon = c(sites.ITRDB$lon),
+                      ID = sites.ITRDB$ID,
+                      type= c(rep("ITRDB", nrow(sites.ITRDB))))
 summary(dat.map)
 
 # Setting bounding box for mapping
@@ -97,7 +98,7 @@ names(states) <- c("Lon", "Lat", paste(names(states[,3:ncol(states)])))
 dim(states)
 # Note: the natural earth data takes quite a while to plot!`
 
-png("figures/ITRDB.png", width=10, height=5, units="in", res=220)
+# png("figures/ITRDB.png", width=10, height=5, units="in", res=220)
 ggplot(data=dat.map) +
   guides(fill="none") +
   geom_tile(data=rast.table, aes(x=x, y=y), fill=rast.table$rgb) + # NOTE: fill MUST be outside of the aes otherwise it converts it to ggcolors
