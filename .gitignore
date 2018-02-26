@@ -11,6 +11,7 @@ GAM_analysis/ch2_multiple_limiting_factors/RWL
 
 *.Rdata
 *.rwl
+*.pdf
 *.rw
 *.pptx
 *.png
