@@ -12,10 +12,7 @@ library(raster); library(maps)
 # ------------------------------------
 # Load file with site names & locations & turn it into a spatial file
 # ------------------------------------
-plot.dat.neil <- read.csv("input_data/neil_ne_plots.csv", header=T)
-
-names(plot.dat.neil)
-plot.dat <- plot.dat.neil
+plot.dat <- read.csv("input_data/NE_site_locations.csv", header=T)
 summary(plot.dat)
 
 
@@ -35,200 +32,89 @@ summary(site.dat)
 site.dat <- site.dat[!is.na(site.dat$longitude),]
 summary(site.dat)
 
-# making smaller for a test
-# site.dat <- site.dat[site.dat$site.name %in% "Bald.Knob",]
-
 # Making site a spatial file & graphing to make sure everything looks okay
-site.loc <- SpatialPointsDataFrame(coords=site.dat[,c("longitude", "latitude")], site.dat, proj4string=CRS("+proj=longlat"))
+site.loc <- SpatialPointsDataFrame(coords=site.dat[,c("longitude", "latitude")], site.dat, proj4string=CRS("+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0"))
 
 # A quick & dirty plot to double check things 
 #  (ggplot can make it a lot prettier but requires extra steps)
-map("state", plot=T,lty="solid", col="gray30", lwd=1.5)
-plot(site.loc, pch=19, add=T, cex=0.5, col="blue")
-# ------------------------------------
+map("state", plot=T,lty="solid", col="gray30", lwd=1.5, 
+    xlim=range(site.loc$longitude)+c(-2,2), 
+    ylim=range(site.loc$latitude)+c(-2,2.25))
+plot(site.loc, pch=19, add=T, cex=1, col="blue")
+
 # saving ecology site locations for a quick map
 write.csv(site.loc, file = "processed_data/NE_site_locations.csv", row.names=F)
+# ------------------------------------
+
+
+
 
 # ------------------------------------
 # Set up & extract the PRISM data
 # ------------------------------------
 # Directory containing PRISM data & what variables we have
-dir.prism <- "~/Dropbox/research/PRISM_Data"
-var.prism <- c("ppt", "tmax", "tmin", "tmean")
-
+path.out <- "/Volumes/GoogleDrive/My Drive/canopy_and_climate/met/"
+dir.prism <- "~/Desktop/SpatialData/PRISM/monthly/"
+var.prism <- c("ppt", "tmax", "tmin", "tmean", "vpdmax", "vpdmin")
+mo.names <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+mo.num <- stringr::str_pad(1:12, 2, "left", "0")
 
 # Simplifying our lives by figuring out which directories we have for one variable
-dir.tmean <- dir(dir.prism, "tmean")
-dir.tmax  <- dir(dir.prism, "tmax" )
-dir.tmin  <- dir(dir.prism, "tmin" )
-dir.ppt   <- dir(dir.prism, "ppt"  )
-
-
-# ------------------------
-# Doing the Extractions, looping through the two different sets of PRISM data 
-#   1) 1895-1980
-#   2) 1980-2015
-# Note: just fo simplicity, doing everything at once and throwing into 1 met 
-#       file in "long" format
-# ------------------------
-for(j in 1:length(dir.tmean)){
-
-	# Get list of .bil files in one of those folder
-	files.tmean <- dir(file.path(dir.prism, dir.tmean[j]), "_bil.bil")
-	files.tmax  <- dir(file.path(dir.prism, dir.tmax [j]), "_bil.bil")
-	files.tmin  <- dir(file.path(dir.prism, dir.tmin [j]), "_bil.bil")
-	files.ppt   <- dir(file.path(dir.prism, dir.ppt  [j]), "_bil.bil")
-
-	# remove the .xml files from these lists
-	files.tmean <- files.tmean[!substr(files.tmean, nchar(files.tmean)-3, nchar(files.tmean))==".xml"]
-	files.tmax  <- files.tmax[!substr(files.tmax, nchar(files.tmax)-3, nchar(files.tmax))==".xml"]
-	files.tmin  <- files.tmin[!substr(files.tmin, nchar(files.tmin)-3, nchar(files.tmin))==".xml"]
-	files.ppt   <- files.ppt[!substr(files.ppt, nchar(files.ppt)-3, nchar(files.ppt))==".xml"]
-
-
-
-	for(i in 1:length(files.tmean)){
-		# Looping through the files one by one to save memory & time
-		tmean <- raster(file.path(dir.prism, dir.tmean[j], files.tmean[i]))
-		tmax  <- raster(file.path(dir.prism, dir.tmax [j], files.tmax [i]))
-		tmin  <- raster(file.path(dir.prism, dir.tmin [j], files.tmin [i]))
-		ppt   <- raster(file.path(dir.prism, dir.ppt  [j], files.ppt  [i]))
-		
-		# Finding the year & month we're currently extracting
-		time.now <- strsplit(files.tmean[i], "_")[[1]][5] # splits the name apart & then pulls the timestamp
-		year.now <- substr(time.now, 1, 4)
-		mo.now   <- substr(time.now, 5,6)
-		print(paste0("Extracting: ", year.now, " - ", mo.now)) # printing some info on the status of the extractions
-	
-		# Stacking the met together to make the extraction a little smoother
-		met.now <- stack(tmean, tmax, tmin, ppt)
-		names(met.now) <- c("tmean", "tmax", "tmin", "ppt")
-		# plot(met.now)		
-		
-		# Extract the met data
-		met.extract <- data.frame(extract(met.now, site.loc, method = "bilinear"))
-		met.extract$Year      <- as.numeric(year.now) # Lets let year be numeric
-		met.extract$Month     <- as.ordered(mo.now) # Keep month as a factor so we keep the 2-digit system
-		met.extract$Site.Code <- site.loc$Site.Code
-		met.extract$Site.Name <- site.loc$site.name
-		
-		# Binding stuff together!!!
-		#  If this is the first time through, copy everything into a new object, otherwise rbind it
-		if(j==1 & i==1) sites.met <- met.extract else sites.met <- rbind(sites.met, met.extract)
-	}
-}
-summary(sites.met)
-write.csv(sites.met, "processed_data/prism_met_NE_sites.csv", row.names=F)
-# ------------------------
-# ------------------------------------
-
-sites.met <- read.csv("processed_data/prism_met_NE_sites.csv")
-
-# ------------------------------------
-# Add in the lags & re-save everything
-# ------------------------------------
-# Making sure month is 2-digits
-sites.met$Month <- as.factor(ifelse(nchar(sites.met$Month)==1, paste0(0, sites.met$Month), sites.met$Month))
-summary(sites.met)
-
-for(s in unique(sites.met$Site.Name)){
-  for(y in (min(sites.met[sites.met$Site.Name==s, "Year"])+1):max(sites.met[sites.met$Site.Name==s, "Year"])){
-  	# print(paste0("Processing Year: ", y))
-  	# Making a temporary dataframe with the lages
-  	df.temp <- data.frame(tmean = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
-  	                                        !substr(sites.met$Month,1,1)=="p", "tmean"],
-  	                      tmax  = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
-  	                                        !substr(sites.met$Month,1,1)=="p", "tmax"],
-  	                      tmin  = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
-  	                                        !substr(sites.met$Month,1,1)=="p", "tmin"],
-  	                      ppt   = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
-  	                                        !substr(sites.met$Month,1,1)=="p", "ppt"],
-  	                      Year  = y,
-  	                      Month = paste0("p", sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
-  	                                        !substr(sites.met$Month,1,1)=="p", "Month"]),
-  	                      Site.Code = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
-  	                                        !substr(sites.met$Month,1,1)=="p", "Site.Code"],
-  	                      Site.Name = sites.met[sites.met$Site.Name==s & sites.met$Year==(y-1) & 
-  	                                        !substr(sites.met$Month,1,1)=="p", "Site.Name"]
-  	                      )
+for(VAR in var.prism){
+  print("")
+  print(VAR)
   
-  	# adding the lag months to the dataframe
-  	sites.met <- rbind(sites.met, df.temp)
+  dir.var  <- dir(file.path(dir.prism, VAR))
+  
+  # Looping through and doing the extraction of all years of met
+  met.all <- data.frame()
+  pb <- txtProgressBar(min=0, max=length(dir.var), style=3)
+  for(j in 1:length(dir.var)){
+    files.var  <- dir(file.path(dir.prism, VAR, dir.var[j]), "_bil.bil")
+    
+    # remove the .xml and annual mean files from these lists
+    files.var <- files.var[!substr(files.var, nchar(files.var)-3, nchar(files.var))==".xml"]
+    files.var <- files.var[nchar(files.var)==max(nchar(files.var))] # Annual mean is missing a month field, so it's name is shorter
+    
+    met.rast <- stack(file.path(dir.prism, VAR, dir.var[j], files.var))
+    
+    met.extract <- data.frame(extract(met.rast, site.loc, method = "bilinear"))
+    names(met.extract) <- mo.num
+    
+    met.long <- stack(met.extract)
+    names(met.long) <- c("value", "month")
+    met.long$year <- as.numeric(dir.var[j])
+    met.long$met  <- VAR
+    met.long[,names(site.dat)] <- site.dat
+    # summary(met.long)
+    
+    met.all <- rbind(met.all, met.long)
+    rm(files.var, met.rast, met.extract, met.long)
+    
+    setTxtProgressBar(pb, j)
   }
+  
+  # Setting up the lags
+  met.lag <- met.all
+  met.lag$year <- met.lag$year+1
+  met.lag$month <- paste0("p",met.lag$month)
+  
+  met.all <- rbind(met.lag, met.all)
+  met.all$month <- factor(met.all$month, levels=c(paste0("p", mo.num), mo.num))
+  
+  write.csv(met.all, file.path(path.out, paste0("prism_met_NE_sites_long_", VAR,".csv")), row.names=F)
+  
+  # ---------------------
+  # reshaping into wide format
+  # ---------------------
+  met.all$year <- as.ordered(met.all$year)
+  # summary(met.all)
+  
+  met.wide <- reshape2::recast(met.all[,c("Site.Code", "year", "month", "value")], Site.Code+year~month)
+  names(met.wide)[3:ncol(met.wide)] <- c(paste0("p", mo.names), mo.names) # Need to be non-numeric for R to be happy
+  # summary(met.wide)
+  
+  write.csv(met.wide, file.path(path.out, paste0("prism_met_NE_sites_wide_", VAR,".csv")), row.names=F)
+  # ---------------------
 }
-summary(sites.met)
-
-unique(sites.met$Month)
-
-# -------------
-# Adding some names and orders to make life easier
-library(car)
-# First setting up the order of months; previous year now negative months from Jan
-#   So December = -1, Nov = -2, etc
-sites.met$Month.Order <- as.ordered(ifelse(substr(sites.met$Month,1,1)=="p", as.numeric(substr(sites.met$Month,2,3))-13, sites.met$Month))
-summary(sites.met)
-unique(sites.met$Month.Order)
-
-sites.met$Month.Name <- recode(sites.met$Month.Order, "'-12'='pJan'; '-11'='pFeb'; '-10'='pMar'; '-9'='pApr'; '-8'='pMay'; '-7'='pJun'; '-6'='pJul'; '-5'='pAug'; '-4'='pSep'; '-3'='pOct'; '-2'='pNov'; '-1'='pDec'; '1'='Jan'; '2'='Feb'; '3'='Mar'; '4'='Apr'; '5'='May'; '6'='Jun'; '7'='Jul'; '8'='Aug'; '9'='Sep'; '10'='Oct'; '11'='Nov'; '12'='Dec' ")
-summary(sites.met)
-unique(sites.met$Month)
-unique(sites.met$Month.Order)
-unique(sites.met$Month.Name)
-# -------------
-
-write.csv(sites.met, "processed_data/prism_met_NE_sites_lags.csv", row.names=F)
-# ------------------------------------
-
-sites.met <- read.csv("processed_data/prism_met_NE_sites_lags.csv")
-sites.met$Month.Order <- as.ordered(sites.met$Month.Order)
-# ------------------------------------
-# Convert to wide format
-# ------------------------------------
-library(reshape2)
-
-# Need to make Year a factor for this to work
-sites.met$Year <- as.ordered(sites.met$Year)
-summary(sites.met)
-
-# # THe lags are getting sestupled for some reason...
-# sites.met[sites.met$Site.Name=="gillbrook" & sites.met$Year==2000 & sites.met$Month=="p01",]
-
-sites.met$Month.Name <- factor(sites.met$Month.Name, levels=c("pJan", "pFeb", "pMar", "pApr", "pMay", "pJun", "pJul", "pAug", "pSep", "pOct", "pNov", "pDec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
-
-# ---------------------
-# Saving Tmean
-# ---------------------
-tmean.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","tmean")], Site.Name+Year~Month.Name)
-summary(tmean.wide)
-
-write.csv(tmean.wide, "processed_data/prism_met_NE_sites_wide_tmean.csv", row.names=F)
-# ---------------------
-
-# ---------------------
-# Saving Tmax
-# ---------------------
-tmax.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","tmax")], Site.Name+Year~Month.Name)
-summary(tmax.wide)
-
-write.csv(tmax.wide, "processed_data/prism_met_NE_sites_wide_tmax.csv", row.names=F)
-# ---------------------
-
-# ---------------------
-# Saving Tmin
-# ---------------------
-tmin.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","tmin")], Site.Name+Year~Month.Name)
-summary(tmin.wide)
-
-write.csv(tmin.wide, "processed_data/prism_met_NE_sites_wide_tmin.csv", row.names=F)
-# ---------------------
-
-# ---------------------
-# Saving Precip
-# ---------------------
-ppt.wide <- recast(sites.met[,c("Site.Name", "Year", "Month.Name","ppt")], Site.Name+Year~Month.Name)
-summary(ppt.wide)
-
-write.csv(ppt.wide, "processed_data/prism_met_NE_sites_wide_ppt.csv", row.names=F)
-# ---------------------
-
 # ------------------------------------

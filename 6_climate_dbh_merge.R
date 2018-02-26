@@ -3,11 +3,22 @@ library(dplR)
 se <- function(x){
   sd(x, na.rm=TRUE) / sqrt((length(!is.na(x))))}
 
+
+path.met <- "/Volumes/GoogleDrive/My Drive/canopy_and_climate/met/"
+
 # Loading in climate data from the PRISM extracts
-t.mean <- read.csv("processed_data/prism_met_NE_sites_wide_tmean.csv", header=T)
-precip <- read.csv("processed_data/prism_met_NE_sites_wide_ppt.csv", header=T)
-t.min <- read.csv("processed_data/prism_met_NE_sites_wide_tmin.csv", header=T)
-t.max <- read.csv("processed_data//prism_met_NE_sites_wide_tmax.csv", header=T)
+precip  <- read.csv(file.path(path.met, "prism_met_NE_sites_wide_ppt.csv".  ), header=T)
+t.mean  <- read.csv(file.path(path.met, "prism_met_NE_sites_wide_tmean.csv" ), header=T)
+t.min   <- read.csv(file.path(path.met, "prism_met_NE_sites_wide_tmin.csv"  ), header=T)
+t.max   <- read.csv(file.path(path.met, "prism_met_NE_sites_wide_tmax.csv"  ), header=T)
+vpd.min <- read.csv(file.path(path.met, "prism_met_NE_sites_wide_vpdmin.csv"), header=T)
+vpd.max <- read.csv(file.path(path.met, "prism_met_NE_sites_wide_vpdmax.csv"), header=T)
+
+
+
+# -----------------------------
+# CR Hasn't edited past here!)
+# -----------------------------
 
 t.max$Site.Code <- recode(t.max$Site.Name, "'gillbrook'='GB';'goose_egg'='GE';'lyford'='LF';'north_round_pond'='NR';'pisgah'='PS';'rooster_hill'='RH'")
 
