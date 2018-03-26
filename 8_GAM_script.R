@@ -1,3 +1,4 @@
+# SKIP TO LINE 36 FOR DATA INPUT.
 library(mgcv)
 library(ggplot2)
 library(car)
@@ -7,31 +8,34 @@ library(car)
 
 # Loading in my data
 
-ne.data <- read.csv("processed_data/NESites_tree_plus_climate_and_BA.csv", header=T)
-ne.data$Live.Dead <- recode(ne.data$Live.Dead, "'Li'='LIVE'")
-summary(ne.data)
-ne.data2 <- ne.data[,c("Year", "Site.Code", "TreeID", "RW", "Species", "Canopy.Class", "Live.Dead", "DBH", "dbh.recon", "tmean", "precip", "BA", "BA.inc", "Plot")]
-names(ne.data2) <- c("Year", "Site.Code", "TreeID", "RW", "Species", "Canopy.Class", "Live.Dead", "DBH", "dbh.recon", "tmean", "precip", "BA", "BA.inc", "PlotID")
-
-phd.data <- read.csv("processed_data/AllSites_tree_plus_climate_and_BA.csv", header=T)
-summary(phd.data)
-
-ne.phd.data <- phd.data[phd.data$Site %in% c("Howland", "Harvard"),]
-ne.phd.data$DBH <- ne.phd.data$DBH..cm.
-ne.phd.data$Canopy.Class <- recode(ne.phd.data$Canopy.Class, "'S' = 'U'")
-ne.phd.data$Site.Code <- recode(ne.phd.data$Site, "'Howland'='HO';'Harvard'='HF'")
-
-ne.phd.data2 <- ne.phd.data[,c("Year", "Site.Code", "TreeID", "RW", "Species", "Canopy.Class", "Live.Dead", "DBH", "dbh.recon", "tmean", "precip", "BA", "BA.inc", "PlotID")]
-
-names(ne.data2)
-names(ne.phd.data2)
-
-data.use <- rbind(ne.data2, ne.phd.data2)
-summary(data.use)
-save(data.use, file="processed_data/gam_input_dataset.Rdata")
+# ne.data <- read.csv("processed_data/NESites_tree_plus_climate_and_BA.csv", header=T)
+# ne.data$Live.Dead <- recode(ne.data$Live.Dead, "'Li'='LIVE'")
+# summary(ne.data)
+# ne.data2 <- ne.data[,c("Year", "Site.Code", "TreeID", "RW", "Species", "Canopy.Class", "Live.Dead", "DBH", "dbh.recon", "tmean", "precip", "BA", "BA.inc", "Plot")]
+# names(ne.data2) <- c("Year", "Site.Code", "TreeID", "RW", "Species", "Canopy.Class", "Live.Dead", "DBH", "dbh.recon", "tmean", "precip", "BA", "BA.inc", "PlotID")
+# 
+# phd.data <- read.csv("processed_data/AllSites_tree_plus_climate_and_BA.csv", header=T)
+# summary(phd.data)
+# 
+# ne.phd.data <- phd.data[phd.data$Site %in% c("Howland", "Harvard"),]
+# ne.phd.data$DBH <- ne.phd.data$DBH..cm.
+# ne.phd.data$Canopy.Class <- recode(ne.phd.data$Canopy.Class, "'S' = 'U'")
+# ne.phd.data$Site.Code <- recode(ne.phd.data$Site, "'Howland'='HO';'Harvard'='HF'")
+# 
+# ne.phd.data2 <- ne.phd.data[,c("Year", "Site.Code", "TreeID", "RW", "Species", "Canopy.Class", "Live.Dead", "DBH", "dbh.recon", "tmean", "precip", "BA", "BA.inc", "PlotID")]
+# 
+# names(ne.data2)
+# names(ne.phd.data2)
+# 
+# data.use <- rbind(ne.data2, ne.phd.data2)
+# summary(data.use)
+# save(data.use, file="processed_data/gam_input_dataset.Rdata")
 # Removing the huge BA.inc value tree.  I'm not sure what is happening there.  Ask Christy to take a look
 # data.use <- data.use[!data.use$BA.inc > 140,]
 
+# Loading in data.use
+# Was merged in script #7 to facilitate VPD data
+data.use <- read.csv("processed_data/NESites_tree_plus_climate_and_BA.csv", header=T)
 
 # CR 4 Feb 2018 -- Rather than remove this value, lets just make it NA
 # data.use[data.use$BA.inc > 140 & !is.na(data.use$BA.inc),]
@@ -65,7 +69,7 @@ summary(test)
 
 
 # Get a list of what predictors & responses I'm using
-predictors.all <- c("tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID", "spp.cc") 
+predictors.all <- c("vpd.min", "vpd.max", "tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID", "spp.cc") 
 
 # Getting rid of observations that have NAs in the important variables
 test <- test[complete.cases(test[,predictors.all]),]
@@ -134,7 +138,7 @@ ps.tsca <- test[test$Site.Code %in%"PS" & test$Species %in% "TSCA",]
 ################################################### 
 # RW ~ CLIMATE(Species) + Size
 
-gam.null <- gam(log(BA.inc)~ s(tmean, k=3) +
+gam.null1 <- gam(log(BA.inc)~ s(tmean, k=3) +
                   s(precip, k=3) +
                   s(dbh.recon, k=3) +
                   s(Year, k=4, by=PlotID)+
@@ -142,11 +146,26 @@ gam.null <- gam(log(BA.inc)~ s(tmean, k=3) +
                 # random=list(Site=~1, PlotID=~1, TreeID=~1),
                 data=test)    
 
-summary(gam.null)$r.sq # R-squared
-summary(gam.null)$dev.expl # explained deviance
-anova(gam.null)
-AIC(gam.null)
-save(gam.null, file = "processed_data/gam_results/gam0_null_model.Rdata")
+summary(gam.null1)$r.sq # R-squared
+summary(gam.null1)$dev.expl # explained deviance
+anova(gam.null1)
+AIC(gam.null1)
+save(gam.null1, file = "processed_data/gam_results/gam0_null_model_tempprecip.Rdata")
+
+gam.null2 <- gam(log(BA.inc)~ s(vpd.max, k=3) +
+                   # s(vpd.min, k=3) +
+                   s(dbh.recon, k=3) +
+                   s(Year, k=4, by=PlotID)+
+                   Site.Code + PlotID  + TreeID + Canopy.Class + Species,
+                 # random=list(Site=~1, PlotID=~1, TreeID=~1),
+                 data=test)    
+
+summary(gam.null2)$r.sq # R-squared
+summary(gam.null2)$dev.expl # explained deviance
+anova(gam.null2)
+AIC(gam.null2)
+save(gam.null2, file = "processed_data/gam_results/gam0_null_model_vpd.Rdata")
+
 
 gam1 <- gam(log(BA.inc)~ s(tmean, k=3, by=spp.cc) +
               s(precip, k=3, by=spp.cc) +
@@ -257,6 +276,36 @@ summary(gam6)$dev.expl # explained deviance
 anova(gam6) 
 AIC(gam6)
 
+# VPDmax
+# Fitting two different temperature effects to see what happens
+gam.vpdmax <- gam(log(BA.inc)~ 
+              s(vpd.max, k=3, by=Canopy.Class) +
+              s(vpd.max, k=3, by=Species) +
+              s(dbh.recon, k=3, by=Species) +
+              s(Year, k=4, by=PlotID)+
+              Site.Code + PlotID  + TreeID + Canopy.Class + Species,
+            # random=list(Site=~1, PlotID=~1, TreeID=~1),
+            data=test)
+summary(gam.vpdmax)$r.sq # R-squared
+summary(gam.vpdmax)$dev.expl # explained deviance
+anova(gam.vpdmax) 
+AIC(gam.vpdmax)
+save(gam.vpdmax, file = "processed_data/gam_results/gam_vpdmax.Rdata")
+# VPDmin
+# Fitting two different temperature effects to see what happens
+gam.vpdmin <- gam(log(BA.inc)~ 
+              s(vpd.min, k=3, by=Canopy.Class) +
+              s(vpd.min, k=3, by=Species) +
+              s(dbh.recon, k=3, by=Species) +
+              s(Year, k=4, by=PlotID)+
+              Site.Code + PlotID  + TreeID + Canopy.Class + Species,
+            # random=list(Site=~1, PlotID=~1, TreeID=~1),
+            data=test)
+summary(gam.vpdmin)$r.sq # R-squared
+summary(gam.vpdmin)$dev.expl # explained deviance
+anova(gam.vpdmin) 
+AIC(gam.vpdmin)
+save(gam.vpdmin, file = "processed_data/gam_results/gam_vpdmin.Rdata")
 # Gillbrook FAGR only run
 gam7 <- gam(log(BA.inc)~ 
               s(tmean, k=3, by=Canopy.Class) +
@@ -329,7 +378,7 @@ for(v in predictors.all){
 # Getting the unique values of our factor variables and adding them to the data frame
 # need to skip group & group.cc so we aren't trying to match Carya & Quercus etc
 # predictors.all <- predictors.all[!predictors.all %in% c("Species", "spp.plot")]
-predictors.all <- c("tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID", "spp.cc", "TreeID") 
+predictors.all <- c("vpd.min", "vpd.max", "tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID", "spp.cc", "TreeID") 
 spline.by=c("Species", "Canopy.Class", "Site.Code", "PlotID", "spp.cc") # the "by" terms in the models you're running
 for(v in predictors.all[!predictors.all %in% vars.num & !(predictors.all %in% c("Site"))]){
   # if v is a factor, merge all unique values into the dataframe
@@ -1113,8 +1162,8 @@ ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "tmean", ]) +
   facet_wrap(~Species) +
   geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
   geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
-  scale_fill_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
-  scale_color_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
+  scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
   geom_hline(yintercept=1, linetype="dashed") +
   coord_cartesian(ylim=c(0.5, 1.5)) +
   # scale_colour_manual("", values = cbbPalette) +
@@ -1130,8 +1179,8 @@ ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "precip", ]) +
   facet_wrap(~Species) +
   geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
   geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
-  scale_fill_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
-  scale_color_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
+  scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
   geom_hline(yintercept=1, linetype="dashed") +
   coord_cartesian(ylim=c(0.5, 1.5)) +
   theme_bw()+
@@ -1161,8 +1210,8 @@ ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("tmean", "precip","dbh.r
   facet_grid(Species~Effect, scales="free_x") +
   geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
   geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
-  scale_fill_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
-  scale_color_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
+  scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
   geom_hline(yintercept=1, linetype="dashed") +
   coord_cartesian(ylim=c(0.5, 1.5)) +
   theme_bw()+
@@ -1176,8 +1225,8 @@ ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("tmean", "precip"), ]) +
   facet_grid(Species~Effect, scales="free_x") +
   geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
   geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
-  scale_fill_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
-  scale_color_manual(values=c("#0072B2", "#009E73", "#E69F00"))+
+  scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
   geom_hline(yintercept=1, linetype="dashed") +
   coord_cartesian(ylim=c(0.5, 1.5)) +
   theme_bw()+
@@ -1201,7 +1250,216 @@ dev.off()
 #         axis.line.y = element_line(color="black", size = 0.5))+
 #   ylim(0,7)
 
+##############################
+# VPD Max posteriors
 
+#----------------------------------------------
+#							
+# SOurce & run the function
+
+load("processed_data/gam_results/gam_vpdmax.Rdata")		
+
+new.dat.vpdmax <- new.dat
+vars.fac <- c("Site.Code", "PlotID", "TreeID", "Canopy.Class", "Species", "spp.cc")
+var.smooth <- c("Canopy.Class", "Species")
+for(v in vars.fac){
+  if(v %in% var.smooth) next # keep all levels for our "by" variable
+  # Get rid of unimportant levels for everything else
+  l1 <- unique(new.dat.vpdmax[,v])[1]
+  new.dat.vpdmax <- new.dat.vpdmax[new.dat.vpdmax[,v]==l1,]
+}
+new.dat.vpdmax$spp.cc <- as.factor(paste(new.dat.vpdmax$Species, new.dat.vpdmax$Canopy.Class, sep="."))
+summary(new.dat.vpdmax)
+
+source("0_Calculate_GAMM_Posteriors.R")
+g.vpdmax.ci.terms.pred <- post.distns(model.gam=gam.vpdmax, model.name="can_spp_Additive_vpod", n=n, newdata=new.dat.vpdmax, vars=predictors.all, terms=T)
+
+g.vpdmax.ci.out <- g.vpdmax.ci.terms.pred$ci # separting out the confidence interval 
+g.vpdmax.ci.out[,predictors.all[!predictors.all %in% vars.num]] <- new.dat.vpdmax[,predictors.all[!predictors.all %in% vars.num]] # copying over our factor labels
+g.vpdmax.ci.out$x <- as.numeric(g.vpdmax.ci.out$x) # making x numeric; will make factors NA; NA's are ok here
+summary(g.vpdmax.ci.out)
+
+# Convert mean, lwr, upr to BAI units
+g.vpdmax.ci.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(g.vpdmax.ci.out[,c("mean", "lwr", "upr")])
+summary(g.vpdmax.ci.out)
+
+ci.terms.graph <- g.vpdmax.ci.out
+
+cbbPalette <- c("#009E73", "#e79f00", "#9ad0f3", "#0072B2", "#D55E00")
+
+# ci.terms.graph$Site <- factor(ci.terms.graph$Site, levels = c("Missouri Ozark", "Morgan Monroe State Park", "Oak Openings Toledo", "Harvard", "Howland"))
+
+# Limiting graph to observational range
+
+summary(ci.terms.graph)
+# DBH
+for(s in unique(test$spp.cc)){
+  dbh.min <- min(test[test$spp.cc==s, "dbh.recon"])
+  dbh.max <- max(test[test$spp.cc==s, "dbh.recon"])
+  
+  ci.terms.graph$x <- ifelse(ci.terms.graph$spp.cc!=s | ci.terms.graph$Effect!="dbh.recon" | (ci.terms.graph$x>=dbh.min & ci.terms.graph$x<=dbh.max), ci.terms.graph$x, NA)
+  
+}
+
+# VPD
+for(s in unique(test$spp.cc)){
+  vpd.max.min <- min(test[test$spp.cc==s, "vpd.max"])
+  vpd.max.max <- max(test[test$spp.cc==s, "vpd.max"])
+  
+  ci.terms.graph$x <- ifelse(ci.terms.graph$spp.cc!=s | ci.terms.graph$Effect!="vpd.max" | (ci.terms.graph$x>=vpd.max.min & ci.terms.graph$x<=vpd.max.max), ci.terms.graph$x, NA)
+  
+}
+
+# # Precip	
+# for(s in unique(test$spp.cc)){
+#   precip.min <- min(test[test$spp.cc==s, "precip"])
+#   precip.max <- max(test[test$spp.cc==s, "precip"])
+#   
+#   ci.terms.graph$x <- ifelse(ci.terms.graph$spp.cc!=s | ci.terms.graph$Effect!="precip" | (ci.terms.graph$x>=precip.min & ci.terms.graph$x<=precip.max), ci.terms.graph$x, NA)
+#   
+# }
+
+summary(ci.terms.graph)
+save(ci.terms.graph, file="processed_data/gam_vpdmax_response_graph.Rdata")
+
+pdf("figures/prelim_figures/gam_vpdmax_sensitivities_observed_vpd.pdf", width= 13, height = 8.5)
+ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "vpd.max", ]) + 
+  facet_wrap(~Species) +
+  geom_ribbon(aes(x=x/100, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
+  geom_line(aes(x=x/100, y=exp(mean), color=Canopy.Class))+
+  scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  geom_hline(yintercept=1, linetype="dashed") +
+  coord_cartesian(ylim=c(0.5, 1.5)) +
+  # scale_colour_manual("", values = cbbPalette) +
+  # scale_fill_manual("", values = cbbPalette) +
+  theme_bw()+
+  labs(x = "VPDmax (kPa)", y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+dev.off()
+
+pdf("figures/prelim_figures/gam_vpdmax_sensitivities_dbh_recon_observed.pdf", width= 13, height = 8.5)
+ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "dbh.recon", ]) + 
+  # facet_wrap(~Species) +
+  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Species), alpha=0.5) +
+  geom_line(aes(x=x, y=exp(mean), color=Species))+
+  scale_fill_manual(values=cbbPalette)+
+  scale_color_manual(values=cbbPalette)+
+  geom_hline(yintercept=1, linetype="dashed") +
+  coord_cartesian(ylim=c(0, 15)) +
+  theme_bw()+
+  labs(x = "Climate Variable", y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+# ylim(0,15)
+dev.off()
+
+
+##############################
+# VPD min posteriors
+
+#----------------------------------------------
+#							
+# SOurce & run the function
+
+load("processed_data/gam_results/gam_vpdmin.Rdata")		
+
+new.dat.vpdmin <- new.dat
+vars.fac <- c("Site.Code", "PlotID", "TreeID", "Canopy.Class", "Species", "spp.cc")
+var.smooth <- c("Canopy.Class", "Species")
+for(v in vars.fac){
+  if(v %in% var.smooth) next # keep all levels for our "by" variable
+  # Get rid of unimportant levels for everything else
+  l1 <- unique(new.dat.vpdmin[,v])[1]
+  new.dat.vpdmin <- new.dat.vpdmin[new.dat.vpdmin[,v]==l1,]
+}
+new.dat.vpdmin$spp.cc <- as.factor(paste(new.dat.vpdmin$Species, new.dat.vpdmin$Canopy.Class, sep="."))
+summary(new.dat.vpdmin)
+
+source("0_Calculate_GAMM_Posteriors.R")
+g.vpdmin.ci.terms.pred <- post.distns(model.gam=gam.vpdmin, model.name="can_spp_Additive_vpdmin", n=n, newdata=new.dat.vpdmin, vars=predictors.all, terms=T)
+
+g.vpdmin.ci.out <- g.vpdmin.ci.terms.pred$ci # separting out the confidence interval 
+g.vpdmin.ci.out[,predictors.all[!predictors.all %in% vars.num]] <- new.dat.vpdmin[,predictors.all[!predictors.all %in% vars.num]] # copying over our factor labels
+g.vpdmin.ci.out$x <- as.numeric(g.vpdmin.ci.out$x) # making x numeric; will make factors NA; NA's are ok here
+summary(g.vpdmin.ci.out)
+
+# Convert mean, lwr, upr to BAI units
+g.vpdmin.ci.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(g.vpdmin.ci.out[,c("mean", "lwr", "upr")])
+summary(g.vpdmin.ci.out)
+
+ci.terms.graph <- g.vpdmin.ci.out
+
+cbbPalette <- c("#009E73", "#e79f00", "#9ad0f3", "#0072B2", "#D55E00")
+
+# ci.terms.graph$Site <- factor(ci.terms.graph$Site, levels = c("Missouri Ozark", "Morgan Monroe State Park", "Oak Openings Toledo", "Harvard", "Howland"))
+
+# Limiting graph to observational range
+
+summary(ci.terms.graph)
+# DBH
+for(s in unique(test$spp.cc)){
+  dbh.min <- min(test[test$spp.cc==s, "dbh.recon"])
+  dbh.max <- max(test[test$spp.cc==s, "dbh.recon"])
+  
+  ci.terms.graph$x <- ifelse(ci.terms.graph$spp.cc!=s | ci.terms.graph$Effect!="dbh.recon" | (ci.terms.graph$x>=dbh.min & ci.terms.graph$x<=dbh.max), ci.terms.graph$x, NA)
+  
+}
+
+# VPD
+for(s in unique(test$spp.cc)){
+  vpd.min.min <- min(test[test$spp.cc==s, "vpd.min"])
+  vpd.min.max <- max(test[test$spp.cc==s, "vpd.min"])
+  
+  ci.terms.graph$x <- ifelse(ci.terms.graph$spp.cc!=s | ci.terms.graph$Effect!="vpd.min" | (ci.terms.graph$x>=vpd.min.min & ci.terms.graph$x<=vpd.min.max), ci.terms.graph$x, NA)
+  
+}
+
+# # Precip	
+# for(s in unique(test$spp.cc)){
+#   precip.min <- min(test[test$spp.cc==s, "precip"])
+#   precip.max <- max(test[test$spp.cc==s, "precip"])
+#   
+#   ci.terms.graph$x <- ifelse(ci.terms.graph$spp.cc!=s | ci.terms.graph$Effect!="precip" | (ci.terms.graph$x>=precip.min & ci.terms.graph$x<=precip.max), ci.terms.graph$x, NA)
+#   
+# }
+
+summary(ci.terms.graph)
+save(ci.terms.graph, file="processed_data/gam_vpdmin_response_graph.Rdata")
+
+pdf("figures/prelim_figures/gam_vpdmin_sensitivities_observed_vpd.pdf", width= 13, height = 8.5)
+ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "vpd.min", ]) + 
+  facet_wrap(~Species) +
+  geom_ribbon(aes(x=x/100, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
+  geom_line(aes(x=x/100, y=exp(mean), color=Canopy.Class))+
+  scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+  geom_hline(yintercept=1, linetype="dashed") +
+  coord_cartesian(ylim=c(0.5, 1.5)) +
+  # scale_colour_manual("", values = cbbPalette) +
+  # scale_fill_manual("", values = cbbPalette) +
+  theme_bw()+
+  labs(x = "VPDmax (kPa)", y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+dev.off()
+
+pdf("figures/prelim_figures/gam_vpdmin_sensitivities_dbh_recon_observed.pdf", width= 13, height = 8.5)
+ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "dbh.recon", ]) + 
+  # facet_wrap(~Species) +
+  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Species), alpha=0.5) +
+  geom_line(aes(x=x, y=exp(mean), color=Species))+
+  scale_fill_manual(values=cbbPalette)+
+  scale_color_manual(values=cbbPalette)+
+  geom_hline(yintercept=1, linetype="dashed") +
+  coord_cartesian(ylim=c(0, 15)) +
+  theme_bw()+
+  labs(x = "Climate Variable", y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+# ylim(0,15)
+dev.off()
 
 #----------------------------------------------
 # GAM 7								
