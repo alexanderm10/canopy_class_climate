@@ -1,3 +1,5 @@
+publication materials/
+publication_materials/
 input_data/
 Neil_data/
 old_extraction_scripts/
@@ -17,3 +19,8 @@ GAM_analysis/ch2_multiple_limiting_factors/RWL
 *.png
 *.rds
 .Rhistory
+*.docx
+*.xlsx
+*.docx
+
+*.xlsx
