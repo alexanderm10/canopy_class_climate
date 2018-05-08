@@ -11,7 +11,11 @@ GAM_analysis/ch2_multiple_limiting_factors/processed_data
 GAM_analysis/ch2_multiple_limiting_factors/raw_input_files
 GAM_analysis/ch2_multiple_limiting_factors/RWL
 publication materials/
-figures
+figures/
+met_data/
+publication materials/canopy_class_AIC_comparison.xlsx
+publication materials/~$nopy_class_climate(1).docx
+
 *.Rdata
 *.rwl
 *.pdf
@@ -25,7 +29,3 @@ figures
 *.docx
 *.pdf
 *.xlsx
-
-publication materials/canopy_class_AIC_comparison.xlsx
-
-publication materials/~$nopy_class_climate(1).docx
