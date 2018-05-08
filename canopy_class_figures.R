@@ -86,7 +86,7 @@ dev.off()
 fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + #facet_wrap(~Site) +
             geom_bar(aes(x=Species, fill=Canopy.Class)) +
             labs(x="Species", y="Count") +
-            scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = "Canopy Class")) +
+            scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = "")) +
             theme(axis.line=element_line(color="black"), 
                   panel.grid.major=element_blank(), 
                   panel.grid.minor=element_blank(), 
@@ -97,7 +97,8 @@ fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + #facet_wra
                   strip.text=element_text(face="bold", size=22),
                   axis.line.x = element_line(color="black", size = 0.5),
                   axis.line.y = element_line(color="black", size = 0.5),
-                  legend.position="top") +
+                  legend.position="top",
+                  legend.text = element_text(size=18)) +
             #legend.key.size = unit(0.75, "cm"),
             #legend.text = element_text(size=22),
             #legend.key = element_rect(fill = "white")) + 
@@ -182,8 +183,8 @@ fig1a <- ggplot(data=dat.map) +
             # scale_color_manual(values="red", name="Data Type") +
             theme_bw() +
             theme(legend.position="none") +
-            scale_x_continuous(expand=c(0,0), name="Degrees Longitude", limits =c(lon.min - 2,lon.max +2)) +
-            scale_y_continuous(expand=c(0,0), name="Degrees Latitude", limits= c(lat.min - 2,lat.max + 2)) +
+            scale_x_continuous(expand=c(0,0), name="Degrees Longitude", limits =c(lon.min - 0.25,lon.max +2.25)) +
+            scale_y_continuous(expand=c(0,0), name="Degrees Latitude", limits= c(lat.min - 1,lat.max + 1)) +
             coord_equal()
 
 pdf("figures/pub_figs/fig1a.pdf", width=5, height=5)
@@ -289,7 +290,7 @@ fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free"
                 strip.text=element_text(face="bold", size=22),
                 axis.line.x = element_line(color="black", size = 0.5),
                 axis.line.y = element_line(color="black", size = 0.5),
-                legend.position="right") +
+                legend.position="none") +
           #legend.key.size = unit(0.75, "cm"),
           #legend.text = element_text(size=22),
           #legend.key = element_rect(fill = "white")) + 
@@ -317,7 +318,7 @@ ci.terms.graph$Canopy.Class <- recode(ci.terms.graph$Canopy.Class, "'I'='Interme
 ci.terms.graph$Effect <- recode(ci.terms.graph$Effect, "'tmean'='Tmean';'precip'='Precip'")
 
 ci.terms.graph$Effect <- factor(ci.terms.graph$Effect, levels= c("Tmean", "Precip", "dbh.recon"))
-
+ci.terms.graph$Species <- factor(ci.terms.graph$Species, levels = c("TSCA", "FAGR", "ACRU", "QURU"))
 cbbPalette <- c("#009E73", "#e79f00", "#9ad0f3", "#0072B2", "#D55E00")
 
 fig3.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "Precip"), ]) + 
@@ -336,8 +337,8 @@ fig3.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "
         panel.grid.minor=element_blank(), 
         panel.border=element_blank(),  
         panel.background=element_blank(), 
-        axis.text.x=element_text(angle=0, color="black", size=22), 
-        axis.text.y=element_text(angle=0, color="black", size=22), 
+        axis.text.x=element_text(angle=0, color="black", size=18), 
+        axis.text.y=element_text(angle=0, color="black", size=18), 
         strip.text=element_text(face="bold", size=18),
         axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
@@ -372,9 +373,11 @@ ci.terms.graph$Effect <- recode(ci.terms.graph$Effect, "'tmean'='Tmean';'precip'
 ci.terms.graph$Effect <- factor(ci.terms.graph$Effect, levels= c("Tmean", "Precip", "dbh.recon"))
 # DBH dwarfs Tmean and Precip
 # will make 2 separate graphs and stitch together like ch2 of diss.
+ci.terms.graph$Species <- factor(ci.terms.graph$Species, levels = c("TSCA", "FAGR", "ACRU", "QURU"))
 
 fig4.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "Precip"), ]) + 
                   facet_grid(Species~Effect, scales = "free_x") +
+                  #geom_vline(aes(x=ci.terms.graph$x[which(ci.terms.graph$Effect=="Tmean" & ci.terms.graph$mean==0)])) +
                   geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
                   geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
                   scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = ""))+
@@ -389,8 +392,8 @@ fig4.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "
                         panel.grid.minor=element_blank(), 
                         panel.border=element_blank(),  
                         panel.background=element_blank(), 
-                        axis.text.x=element_text(angle=0, color="black", size=22), 
-                        axis.text.y=element_text(angle=0, color="black", size=22), 
+                        axis.text.x=element_text(angle=0, color="black", size=18), 
+                        axis.text.y=element_text(angle=0, color="black", size=18), 
                         strip.text=element_text(face="bold", size=18),
                         axis.line.x = element_line(color="black", size = 0.5),
                         axis.line.y = element_line(color="black", size = 0.5),
@@ -548,6 +551,7 @@ vpd.graph <- ci.terms.graph
 summary(vpd.graph)
 
 vpd.graph$Canopy.Class <- recode(vpd.graph$Canopy.Class, "'I'='Intermediate';'U'='Understory'")
+vpd.graph$Species <- factor(vpd.graph$Species, levels = c("TSCA", "FAGR", "ACRU", "QURU"))
 
 fig5 <- ggplot(data=vpd.graph[vpd.graph$Effect %in% "vpd.max", ]) + 
             facet_wrap(~Species) +
@@ -578,11 +582,11 @@ fig5 <- ggplot(data=vpd.graph[vpd.graph$Effect %in% "vpd.max", ]) +
             theme(axis.title.x = element_text(size=22, face="bold"),
                   axis.title.y= element_text(size=22, face="bold"))	
 
-png("figures/pub_figs/Figure5.png", width=13, height=8, units="in", res=300)
+png("figures/pub_figs/FigureS2.png", width=13, height=8, units="in", res=300)
 fig5
 dev.off()
 
-pdf("figures/pub_figs/Figure5.pdf", width=13, height=8)
+pdf("figures/pub_figs/FigureS2a.pdf", width=13, height=8)
 fig5
 dev.off()
 

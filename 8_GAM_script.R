@@ -133,6 +133,9 @@ save(test, file="overstory_understory_combined_data_use.Rdata")
 gb.fagr <- test[test$Site.Code %in%"GB" & test$Species %in% "FAGR",]
 ps.tsca <- test[test$Site.Code %in%"PS" & test$Species %in% "TSCA",]
 
+# Found a QURU from Lyford that was an outlier.  Understory tree that was 58cm DBH; Pulling that tree
+test <- test[!test$TreeID %in% "LF2029",]
+
 ################################################### 
 # HERE'S THE GAMM!!!
 ################################################### 

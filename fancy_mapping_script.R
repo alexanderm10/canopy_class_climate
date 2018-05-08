@@ -211,7 +211,7 @@ rast.table$rgb <- with(rast.table, rgb(NE1_HR_LC_SR_W_DR.1,
 worldmap2 <- map_data("world")
 worldmap2$region <- as.factor(worldmap2$region)
 
-europe.sites <- read.csv("input_data/FunDiv_european_sites.csv")
+europe.sites <- read.csv("input_data/FunDiv_coordinates_baeten2013.csv")
 load("europe_outlines.Rdata")
 
 summary(itrdb.out)

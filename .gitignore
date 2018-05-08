@@ -10,7 +10,8 @@ GAM_analysis/ch2_multiple_limiting_factors/input_files
 GAM_analysis/ch2_multiple_limiting_factors/processed_data
 GAM_analysis/ch2_multiple_limiting_factors/raw_input_files
 GAM_analysis/ch2_multiple_limiting_factors/RWL
-
+publication materials/
+figures
 *.Rdata
 *.rwl
 *.pdf
