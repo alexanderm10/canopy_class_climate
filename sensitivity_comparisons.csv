@@ -1,0 +1,17 @@
+spp,canopy.class,clim.var,value
+ACRU,mid,temp,2.78
+ACRU,low,temp,4.98
+ACRU,mid,precip,1.28
+ACRU,low,precip,-6.96
+FAGR,mid,temp,12.44
+FAGR,low,temp,29.02
+FAGR,mid,precip,0.63
+FAGR,low,precip,-0.26
+TSCA,mid,temp,2.21
+TSCA,low,temp,3.97
+TSCA,mid,precip,0.43
+TSCA,low,precip,-1
+QURU,mid,temp,-0.67
+QURU,low,temp,-7.06
+QURU,mid,precip,1.89
+QURU,low,precip,4.12

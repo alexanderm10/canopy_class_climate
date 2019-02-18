@@ -114,3 +114,4 @@ row.names(tree.rw)
 tree.rw[row.names(tree.rw) >1950,1:3]
 
 save(tree.rw, file="processed_data/NE_tree_ringwidths.Rdata")
+write.tucson(tree.rw, fname="processed_data/NE_tr_tucson.rwl", long.names = T)

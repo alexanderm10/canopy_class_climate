@@ -26,13 +26,24 @@ for(i in cc.tree.data$TreeID){
 }
 
 summary(cc.tree.data)
-cc.tree.data$Canopy.Class <- recode(cc.tree.data$Canopy.Class, "'I'='Intermediate'; 'U'='Understory'")
+cc.tree.data$Canopy.Class <- recode(cc.tree.data$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
 
 cc.tree.data.all <- cc.tree.data
 cc.tree.data.all$Site <- as.factor("All") 
 
 cc.tree.data2 <- rbind(cc.tree.data, cc.tree.data.all)
 summary(cc.tree.data2)
+
+cc.tree.data2$Canopy.Class <- factor(cc.tree.data2$Canopy.Class, levels=c("Overstory", "Middle", "Understory"))
+cc.tree.data2$Species <- factor(cc.tree.data2$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
+
+# Pulling out outlier datapoint from the analysis
+# HUGE QURU labeled as suppressed
+# Pulling LF2029
+
+cc.tree.data2 <- cc.tree.data2[!cc.tree.data2$TreeID=="LF2029",]
+
+write.csv(cc.tree.data2, "canopy_class_tree_data.csv", row.names=F)
 for(i in unique(cc.tree.data$Site)){
   
   print(ggplot(data=cc.tree.data[cc.tree.data$Site==i,]) +
@@ -83,8 +94,8 @@ ggplot(data=cc.tree.data) + facet_wrap(~Site) +
 dev.off()
 
 
-fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + #facet_wrap(~Site) +
-            geom_bar(aes(x=Species, fill=Canopy.Class)) +
+fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + facet_grid(Species~.) +
+            geom_histogram(aes(x=DBH, fill=Canopy.Class), binwidth = 5) +
             labs(x="Species", y="Count") +
             scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = "")) +
             theme(axis.line=element_line(color="black"), 
@@ -151,7 +162,7 @@ nat.earth <- stack("~malexander10/Dropbox/Research/mapping_data/base_layers/NE1_
 # USFS forest cover http://www.mrlc.gov/nlcd11_data.php
 #nat.earth <- stack("base_layers/CONUSCartographic_2_8_16/Cartographic/nlcd2011_usfs_conus_canopy_cartographic.img")
 nat.crop <- crop(nat.earth, y=c(lon.min-5, lon.max+5, lat.min-5, lat.max+5))
-nat.crop <- aggregate(nat.crop, fact=2, fun=mean)
+#nat.crop <- aggregate(nat.crop, fact=2, fun=mean)
 
 
 rast.table <- data.frame(xyFromCell(nat.crop, 1:ncell(nat.crop)),
@@ -182,27 +193,37 @@ fig1a <- ggplot(data=dat.map) +
             geom_text(data = dat.map[dat.map$Site.Code %in% "HF",], aes(x=Lon-0.25, y=Lat-0.25, label = paste("",as.character(Site.Code), sep="")), color="black", size=5,fontface="bold") +
             # scale_color_manual(values="red", name="Data Type") +
             theme_bw() +
-            theme(legend.position="none") +
+            theme(legend.position="none",
+                  axis.text.x=element_text(angle=0, color="black", size=16, vjust= 0.5), 
+                  axis.text.y=element_text(angle=0, color="black", size=16)) +
             scale_x_continuous(expand=c(0,0), name="Degrees Longitude", limits =c(lon.min - 0.25,lon.max +2.25)) +
             scale_y_continuous(expand=c(0,0), name="Degrees Latitude", limits= c(lat.min - 1,lat.max + 1)) +
-            coord_equal()
+            coord_equal() +
+            theme(axis.title.y= element_text(size=24, face="bold")) +
+            theme(axis.title.x= element_text(size=24, face="bold"))
 
-pdf("figures/pub_figs/fig1a.pdf", width=5, height=5)
+png("figures/pub_figs/fig1a.png", width= 13, height = 8.5, unit="in", res = 300)
 fig1a
 dev.off()
 
-png("figures/pub_figs/Figure1.png", width= 13, height = 8.5, unit="in", res = 300)
-grid.newpage()
-pushViewport(viewport(layout=grid.layout(nrow=1,ncol=2, widths=c(1.3,1,2))))
-print(fig1a, vp = viewport(layout.pos.row = 1, layout.pos.col=1))
-print(fig1b, vp = viewport(layout.pos.row = 1, layout.pos.col=2))	
+# png("figures/pub_figs/Figure1.png", width= 13, height = 8.5, unit="in", res = 300)
+# grid.newpage()
+# pushViewport(viewport(layout=grid.layout(nrow=1,ncol=2, widths=c(1.3,1,2))))
+# print(fig1a, vp = viewport(layout.pos.row = 1, layout.pos.col=1))
+# print(fig1b, vp = viewport(layout.pos.row = 1, layout.pos.col=2))	
+# 
+# dev.off()
 
+library(cowplot)
+png(file="figures/pub_figs/Figure1.png", width=15, height= 10, res=300, unit="in")
+plot_grid(fig1a, fig1b, align = c("v","h"), nrow = 1, rel_widths = c(0.4, 0.6), labels = c("A)", "B)"))
 dev.off()
+
 
 png("figures/pub_figs/Figure1_presentation.png", width= 15, height = 9, unit="in", res = 300)
 grid.newpage()
 pushViewport(viewport(layout=grid.layout(nrow=1,ncol=2, widths=c(1.3,1,2))))
-print(cc.bm, vp = viewport(layout.pos.row = 1, layout.pos.col=1))
+print(fig1a, vp = viewport(layout.pos.row = 1, layout.pos.col=1))
 print(fig1b, vp = viewport(layout.pos.row = 1, layout.pos.col=2))	
 
 dev.off()
@@ -275,10 +296,12 @@ names(avg.climate.stack) <- c("mean.values", "type")
 avg.climate.stack$Site.Code <- avg.climate$Site.Code
 
 fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free") +
-          geom_density(aes(x=climate.var, y = ..scaled.., fill=Site.Code, color=Site.Code), alpha=0.4) +
-          geom_vline(data= avg.climate.stack, aes(xintercept=mean.values, color=Site.Code)) +        
-  scale_fill_manual(values=site.palette, guide = guide_legend(title = "Site")) +
-          scale_color_manual(values=site.palette, guide = guide_legend(title = "Site")) +
+          geom_density(aes(x=climate.var, y = ..scaled.., fill=type, color=type), alpha=0.4) +
+          geom_vline(data= avg.climate.stack, aes(xintercept=mean.values, color=type)) +        
+  # scale_fill_manual(values=site.palette, guide = guide_legend(title = "Site")) +
+  #         scale_color_manual(values=site.palette, guide = guide_legend(title = "Site")) +
+          scale_fill_manual(values = c("#D55E00", "#0072B2", "#009E73"), guide = guide_legend(title="Clim. Var.")) +
+          scale_color_manual(values = c("#D55E00", "#0072B2", "#009E73"), guide = guide_legend(title="Clim. Var.")) +
           labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = "Scaled") +
           theme(axis.line=element_line(color="black"), 
                 panel.grid.major=element_blank(), 
@@ -299,6 +322,10 @@ fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free"
           theme(axis.title.x= element_text(size=24, face="bold"))
 
 
+# Looking at precip and temp data for the overall domain
+ggplot(data  = data.use) +
+  geom_point(aes(x=tmean, y = precip)) +
+  stat_smooth(aes(x=tmean, y=precip), method="lm")
 
 
 png("figures/pub_figs/Figure2.png", width=13, height=8, units="in", res=300)
@@ -314,21 +341,24 @@ dev.off()
 ########################
 # Loading in species gam data
 load("processed_data/gam4_response_graph.Rdata")
-ci.terms.graph$Canopy.Class <- recode(ci.terms.graph$Canopy.Class, "'I'='Intermediate'; 'U'='Understory'")
+ci.terms.graph$Canopy.Class <- recode(ci.terms.graph$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
 ci.terms.graph$Effect <- recode(ci.terms.graph$Effect, "'tmean'='Tmean';'precip'='Precip'")
 
+ci.terms.graph$Canopy.Class <- factor(ci.terms.graph$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
 ci.terms.graph$Effect <- factor(ci.terms.graph$Effect, levels= c("Tmean", "Precip", "dbh.recon"))
 ci.terms.graph$Species <- factor(ci.terms.graph$Species, levels = c("TSCA", "FAGR", "ACRU", "QURU"))
 cbbPalette <- c("#009E73", "#e79f00", "#9ad0f3", "#0072B2", "#D55E00")
 
+
+
 fig3.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "Precip"), ]) + 
   facet_grid(Species~Effect, scales = "free_x") +
-  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=exp(mean), color=Species))+
+  geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100), fill= "black", alpha=0.25) +
+  geom_line(aes(x=x, y=exp(mean)*100), color="black")+
   scale_fill_manual(values=cbbPalette, guide = guide_legend(title = ""))+
   scale_color_manual(values=cbbPalette, guide = guide_legend(title = ""))+
-  geom_hline(yintercept=1, linetype="dashed") +
-  coord_cartesian(ylim=c(0.5, 1.5)) +
+  geom_hline(yintercept=100, linetype="dashed") +
+  coord_cartesian(ylim=c(50, 150)) +
   # scale_colour_manual("", values = cbbPalette) +
   # scale_fill_manual("", values = cbbPalette) +
   labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = expression(bold(paste("Effect on BAI (%)"))))+
@@ -367,7 +397,9 @@ dev.off()
 
 load("processed_data/gam6_response_graph.Rdata")
 
-ci.terms.graph$Canopy.Class <- recode(ci.terms.graph$Canopy.Class, "'I'='Intermediate'; 'U'='Understory'")
+ci.terms.graph$Canopy.Class <- recode(ci.terms.graph$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
+ci.terms.graph$Canopy.Class <- factor(ci.terms.graph$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
+
 ci.terms.graph$Effect <- recode(ci.terms.graph$Effect, "'tmean'='Tmean';'precip'='Precip'")
 
 ci.terms.graph$Effect <- factor(ci.terms.graph$Effect, levels= c("Tmean", "Precip", "dbh.recon"))
@@ -378,12 +410,12 @@ ci.terms.graph$Species <- factor(ci.terms.graph$Species, levels = c("TSCA", "FAG
 fig4.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "Precip"), ]) + 
                   facet_grid(Species~Effect, scales = "free_x") +
                   #geom_vline(aes(x=ci.terms.graph$x[which(ci.terms.graph$Effect=="Tmean" & ci.terms.graph$mean==0)])) +
-                  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
-                  geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
+                  geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100, fill=Canopy.Class), alpha=0.5) +
+                  geom_line(aes(x=x, y=exp(mean)*100, color=Canopy.Class))+
                   scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = ""))+
                   scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = ""))+
-                  geom_hline(yintercept=1, linetype="dashed") +
-                  coord_cartesian(ylim=c(0.5, 1.5)) +
+                  geom_hline(yintercept=100, linetype="dashed") +
+                  coord_cartesian(ylim=c(50, 150)) +
                   # scale_colour_manual("", values = cbbPalette) +
                   # scale_fill_manual("", values = cbbPalette) +
                   labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = expression(bold(paste("Effect on BAI (%)"))))+
@@ -416,12 +448,12 @@ dev.off()
 # Temperature
 fig4.t <-  ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "tmean", ]) + 
               facet_wrap(~Species) +
-              geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
-              geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
+              geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100, fill=Canopy.Class), alpha=0.5) +
+              geom_line(aes(x=x, y=exp(mean)*100, color=Canopy.Class))+
               scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
               scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
-              geom_hline(yintercept=1, linetype="dashed") +
-              coord_cartesian(ylim=c(0.5, 1.5)) +
+              geom_hline(yintercept=100, linetype="dashed") +
+              coord_cartesian(ylim=c(50, 150)) +
               # scale_colour_manual("", values = cbbPalette) +
               # scale_fill_manual("", values = cbbPalette) +
               labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = expression(bold(paste("Effect on BAI (%)"))))+
@@ -446,12 +478,12 @@ fig4.t <-  ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "tmean", ]) +
 
 fig4.p <-  ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "precip", ]) + 
   facet_wrap(~Species) +
-  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
-  geom_line(aes(x=x, y=exp(mean), color=Canopy.Class))+
+  geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100, fill=Canopy.Class), alpha=0.5) +
+  geom_line(aes(x=x, y=exp(mean)*100, color=Canopy.Class))+
   scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = ""))+
   scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = ""))+
-  geom_hline(yintercept=1, linetype="dashed") +
-  coord_cartesian(ylim=c(0.5, 1.5)) +
+  geom_hline(yintercept=100, linetype="dashed") +
+  coord_cartesian(ylim=c(50, 150)) +
   # scale_colour_manual("", values = cbbPalette) +
   # scale_fill_manual("", values = cbbPalette) +
   labs(x = "Precipitation (mm)", y=element_blank())+
@@ -479,13 +511,13 @@ fig4.p <-  ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "precip", ]) +
 spp.palette <- c("#009E73", "#e79f00", "#9ad0f3", "#0072B2", "#D55E00")
 figS1.dbh <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "dbh.recon", ]) + 
               # facet_wrap(~Species) +
-              geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Species), alpha=0.5) +
-              geom_line(aes(x=x, y=exp(mean), color=Species))+
+              geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100, fill=Species), alpha=0.5) +
+              geom_line(aes(x=x, y=exp(mean)*100, color=Species))+
               scale_fill_manual(values=spp.palette)+
               scale_color_manual(values=spp.palette)+
-              geom_hline(yintercept=1, linetype="dashed") +
-              coord_cartesian(ylim=c(0, 15)) +
-              labs(x = "DBH (cm)", y = NULL)+
+              geom_hline(yintercept=100, linetype="dashed") +
+              coord_cartesian(ylim=c(0, 1500)) +
+              labs(x = "DBH (cm)", y = "Effect on BAI (%)")+
   theme(axis.line=element_line(color="black"), 
         panel.grid.major=element_blank(), 
         panel.grid.minor=element_blank(), 
@@ -550,17 +582,18 @@ vpd.graph <- ci.terms.graph
 
 summary(vpd.graph)
 
-vpd.graph$Canopy.Class <- recode(vpd.graph$Canopy.Class, "'I'='Intermediate';'U'='Understory'")
+vpd.graph$Canopy.Class <- recode(vpd.graph$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle';'U'='Understory'")
+vpd.graph$Canopy.Class <- factor(vpd.graph$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
 vpd.graph$Species <- factor(vpd.graph$Species, levels = c("TSCA", "FAGR", "ACRU", "QURU"))
 
 fig5 <- ggplot(data=vpd.graph[vpd.graph$Effect %in% "vpd.max", ]) + 
             facet_wrap(~Species) +
-            geom_ribbon(aes(x=x/100, ymin=exp(lwr), ymax=exp(upr), fill=Canopy.Class), alpha=0.5) +
-            geom_line(aes(x=x/100, y=exp(mean), color=Canopy.Class))+
+            geom_ribbon(aes(x=x/100, ymin=exp(lwr)*100, ymax=exp(upr)*100, fill=Canopy.Class), alpha=0.5) +
+            geom_line(aes(x=x/100, y=exp(mean)*100, color=Canopy.Class))+
             scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"),guide = guide_legend(title = ""))+
             scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"),guide = guide_legend(title = ""))+
-            geom_hline(yintercept=1, linetype="dashed") +
-            coord_cartesian(ylim=c(0.5, 1.5)) +
+            geom_hline(yintercept=100, linetype="dashed") +
+            coord_cartesian(ylim=c(50, 150)) +
             # scale_colour_manual("", values = cbbPalette) +
             # scale_fill_manual("", values = cbbPalette) +
             labs(x = "VPDmax (kPa)", y = expression(bold(paste("Effect on BAI (%)"))))+
@@ -588,5 +621,49 @@ dev.off()
 
 pdf("figures/pub_figs/FigureS2a.pdf", width=13, height=8)
 fig5
+dev.off()
+
+# Try merging temp precip and VPD into one figure
+vpd.graph2 <- vpd.graph
+vpd.graph2$x <- vpd.graph2$x/100
+
+franken.fig <- rbind(ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "Precip"),], vpd.graph2[vpd.graph2$Effect %in% "vpd.max",])
+summary(franken.fig)
+
+franken.fig$Effect <- recode(franken.fig$Effect, "'vpd.max'='VPDmax'")
+
+franken.fig$Effect <- factor(franken.fig$Effect, levels=c("Tmean", "Precip", "VPDmax"))
+
+franken.graph <- ggplot(data=franken.fig[franken.fig$Effect %in% c("VPDmax", "Tmean", "Precip"), ]) + 
+                    facet_grid(Species~Effect, scales="free_x") +
+                    geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100, fill=Canopy.Class), alpha=0.5) +
+                    geom_line(aes(x=x, y=exp(mean)*100, color=Canopy.Class))+
+                    scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"),guide = guide_legend(title = ""))+
+                    scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"),guide = guide_legend(title = ""))+
+                    geom_hline(yintercept=100, linetype="dashed") +
+                    coord_cartesian(ylim=c(50, 150)) +
+                    # scale_colour_manual("", values = cbbPalette) +
+                    # scale_fill_manual("", values = cbbPalette) +
+                    labs(x = "VPDmax (kPa)", y = expression(bold(paste("Effect on BAI (%)"))))+
+                    theme(axis.line=element_line(color="black"), 
+                          panel.grid.major=element_blank(), 
+                          panel.grid.minor=element_blank(), 
+                          panel.border=element_blank(),  
+                          panel.background=element_blank(), 
+                          axis.text.x=element_text(angle=0, color="black", size=22), 
+                          axis.text.y=element_text(angle=0, color="black", size=22), 
+                          strip.text=element_text(face="bold", size=18),
+                          axis.line.x = element_line(color="black", size = 0.5),
+                          axis.line.y = element_line(color="black", size = 0.5),
+                          legend.position="top",
+                          legend.key.size = unit(0.75, "cm"),
+                          legend.text = element_text(size=18),
+                          legend.key = element_rect(fill = "white")) + 
+                    #guides(color=guide_legend(nrow=1),)+
+                    theme(axis.title.x = element_text(size=22, face="bold"),
+                          axis.title.y= element_text(size=22, face="bold"))	
+
+pdf(file="figures/pub_figs/franken_graph.pdf", width=13, height=10)
+franken.graph
 dev.off()
 

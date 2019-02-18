@@ -7,12 +7,15 @@ source("0_Calculate_GAMM_Posteriors_Updated.R") # This is a slightly updated ver
 source("0_Calculate_GAMM_Derivs.R")
 
 # Setting up the base dataframe we need
+data.use <- read.csv("processed_data/NESites_tree_plus_climate_and_BA.csv", header=T)
+
 new.dat <- read.csv("processed_data/sensitivity_extaction_dataframe.csv")
 n <- 1000
 
 predictors.all <- c("vpd.max", "tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID", "spp.cc", "TreeID") 
 
-
+summary(dat.use)
+summary(new.dat)
 
 
 # ----------------------------------------
@@ -36,14 +39,40 @@ for(v in vars.fac){
 }
 summary(df.spp)
 
-
 pred.spp <- c("tmean", "precip")
+
 # spp.post <- post.distns(model.gam=spp.gam, newdata=df.spp, vars=pred.spp, terms=T)
 # spp.post$x <- as.numeric(spp.post$x) # making x numeric; will make factors NA; NA's are ok here
 # summary(spp.post)
 
 spp.deriv <- calc.derivs(model.gam=spp.gam, newdata=df.spp, vars=pred.spp)
+spp.post <- post.distns(model.gam=spp.gam, newdata=df.spp, vars=pred.spp, terms=T)
+spp.post[,c("Species", "Canopy.Class")] <- spp.deriv[,c("Species", "Canopy.Class")]
 summary(spp.deriv)
+summary(spp.post)
+
+
+# # Truncate out ranges we didn't observe in the data
+for(VAR in var.smooth){
+  for(LEV in unique(df.spp[,VAR])){
+    for(PRED in pred.spp){
+      prange <- range(data.use[data.use[,VAR]==paste(LEV),PRED], na.rm=T)
+      
+      # Insert NAs for predictor values outside the range of observed
+      # NOTE: Assumes things are in teh same order (which they should be)
+      rows.na <- which(spp.deriv[,VAR]==paste(LEV) & spp.deriv$var==PRED & 
+                         !is.na(spp.deriv[spp.deriv$var==PRED,PRED]) & 
+                         (spp.deriv[,PRED]<prange[1] | spp.deriv[,PRED]>prange[2]))
+      spp.deriv[rows.na, PRED] <- NA
+      spp.post[rows.na, "x"] <- NA
+    }
+  }
+}
+spp.deriv[is.na(spp.deriv$tmean),c("mean", "lwr", "upr", "sig")] <- NA
+spp.deriv[is.na(spp.deriv$precip),c("mean", "lwr", "upr", "sig")] <- NA
+spp.post[is.na(spp.post$x),c("mean", "lwr", "upr")] <- NA
+summary(spp.deriv)
+summary(spp.post)
 
 # ----------------
 # ACRU
@@ -54,19 +83,27 @@ summary(spp.deriv)
 summary(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean", "mean"])
-sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean", "mean"])
+mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean", "mean"], na.rm=T)
+
+# Find range of ACRU response
+acru.range  <- range(spp.post[spp.post$Species=="ACRU" & spp.post$Effect=="tmean", "mean"],na.rm=T)
+spp.post[spp.post$Species=="ACRU" & spp.post$Effect=="tmean" & !is.na(spp.post$x) & spp.post$mean==acru.range[1],"x",]
+spp.post[spp.post$Species=="ACRU" & spp.post$Effect=="tmean" & !is.na(spp.post$x) & spp.post$mean==acru.range[2],"x",]
+sd(spp.post[spp.post$Species=="ACRU" & spp.post$Effect=="tmean", "mean"], na.rm=T)
 
 # Non-significant temperature range
-summary(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"])
+summary(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"], na.rm=T)
+acru.ns <- range(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"], na.rm=T)
+acru.ns
 
 # Strong negative slope area
-mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean>15.5, "mean"])
-sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean>15.5, "mean"])
+mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean>acru.ns[2], "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean>acru.ns[2], "mean"], na.rm=T)
 
 # Slgiht positive area
-mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean<14.9, "mean"])
-sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean<14.9, "mean"])
+mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean<acru.ns[1], "mean"])
+sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmean<acru.ns[1], "mean"])
 # ------
 
 # ------
@@ -75,20 +112,23 @@ sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="tmean" & spp.deriv$tmea
 summary(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip", "mean"])
-sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip", "mean"])
+mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip", "mean"], na.rm=T)
 
 # Non-significant precipitation range
 summary(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"])
+range(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip", "precip"], na.rm=T)
+acru.ns <- range(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"], na.rm=T)
+acru.ns
 
 
 # positive slope area
-mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip<405, "mean"])
-sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip<405, "mean"])
+mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip<acru.ns[1], "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip<acru.ns[1], "mean"], na.rm=T)
 
 # negative slope area
-mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip>609.1, "mean"])
-sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip>609.1, "mean"])
+mean(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip>acru.ns[2], "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$precip>acru.ns[2], "mean"], na.rm=T)
 # ------
 
 # ----------------
@@ -102,8 +142,9 @@ sd(spp.deriv[spp.deriv$Species=="ACRU" & spp.deriv$var=="precip" & spp.deriv$pre
 summary(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="tmean", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="tmean", "mean"])
-sd(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="tmean", "mean"])
+mean(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="tmean", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="tmean", "mean"], na.rm=T)
+
 
 # Non-significant temperature range
 summary(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"])
@@ -115,11 +156,20 @@ summary(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="tmean" & is.na(spp
 summary(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip", "mean"])
-sd(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip", "mean"])
+mean(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip", "mean"], na.rm=T)
+
+fagr.range  <- range(spp.post[spp.post$Species=="FAGR" & spp.post$Effect=="precip", "mean"], na.rm=T)
+spp.post[spp.post$Species=="FAGR" & spp.post$Effect=="precip" & spp.post$mean==fagr.range[1],"x"]
+spp.post[spp.post$Species=="FAGR" & spp.post$Effect=="precip" & spp.post$mean==fagr.range[2],"x"]
+mean(spp.post[spp.post$Species=="FAGR" & spp.post$Effect=="precip", "mean"], na.rm=T)
+sd(spp.post[spp.post$Species=="FAGR" & spp.post$Effect=="precip", "mean"], na.rm=T)
+
+
 
 # Non-significant precipitation range
 summary(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"])
+fagr.ns <- range(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"])
 
 
 # positive slope area
@@ -141,15 +191,21 @@ sd(spp.deriv[spp.deriv$Species=="FAGR" & spp.deriv$var=="precip" & spp.deriv$pre
 summary(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean", "mean"])
-sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean", "mean"])
+mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean", "mean"], na.rm=T)
 
 # Non-significant temperature range
 summary(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"])
+range(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean", "tmean"], na.rm=T)
+quru.ns <- range(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"], na.rm=T)
+quru.ns
 
 # Area of significant change
-mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean" & spp.deriv$tmean>15.84, "mean"])
-sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean" & spp.deriv$tmean>15.84, "mean"])
+mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean" & spp.deriv$tmean>quru.ns[2], "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean" & spp.deriv$tmean>quru.ns[2], "mean"], na.rm=T)
+
+mean(spp.post[spp.post$Species=="QURU" & spp.post$Effect=="tmean" & spp.post$x>quru.ns[2], "mean"], na.rm=T)
+sd(spp.post[spp.post$Species=="QURU" & spp.post$Effect=="tmean" & spp.post$x>quru.ns[2], "mean"], na.rm=T)
 
 # ------
 
@@ -159,20 +215,23 @@ sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="tmean" & spp.deriv$tmea
 summary(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip", "mean"])
-sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip", "mean"])
+mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip", "mean"], na.rm=T)
 
 # Non-significant precipitation range
 summary(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"])
+range(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip", "precip"], na.rm=T)
+quru.ns <- range(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"], na.rm=T)
+quru.ns
 
 
 # positive slope area
-mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip<498, "mean"])
-sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip<498, "mean"])
+mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip<quru.ns[1], "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip<quru.ns[1], "mean"], na.rm=T)
 
 # negative slope area
-mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip>550, "mean"])
-sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip>550, "mean"])
+mean(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip>quru.ns[2], "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$precip>quru.ns[2], "mean"], na.rm=T)
 # ------
 # ----------------
 
@@ -185,15 +244,18 @@ sd(spp.deriv[spp.deriv$Species=="QURU" & spp.deriv$var=="precip" & spp.deriv$pre
 summary(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean", "mean"])
-sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean", "mean"])
+mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean", "mean"], na.rm=T)
 
 # Non-significant temperature range
 summary(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"])
+range(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean", "tmean"], na.rm=T)
+tsca.ns <- range(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean" & is.na(spp.deriv$sig), "tmean"], na.rm=T)
+tsca.ns
 
 # Significant effect range
-mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean" & spp.deriv$tmean<17.1, "mean"])
-sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean" & spp.deriv$tmean<17.1, "mean"])
+mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean" & spp.deriv$tmean<tsca.ns[1], "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean" & spp.deriv$tmean<tsca.ns[1], "mean"], na.rm=T)
 # ------
 
 # ------
@@ -202,16 +264,19 @@ sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="tmean" & spp.deriv$tmea
 summary(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip", ])
 
 # Slope mean & SD (whole range)
-mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip", "mean"])
-sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip", "mean"])
+mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip", "mean"], na.rm=T)
+sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip", "mean"], na.rm-T)
 
 # Non-significant precipitation range
 summary(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"])
+range(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip", "precip"], na.rm=T)
+tsca.ns <- range(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip" & is.na(spp.deriv$sig), "precip"], na.rm=T)
+tsca.ns
 
 
 # significant slope area
-mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip" & spp.deriv$precip<685.7, "mean"])
-sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip" & spp.deriv$precip<685.7, "mean"])
+mean(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip" & spp.deriv$precip<tsca.ns[1], "mean"])
+sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip" & spp.deriv$precip<tsca.ns[1], "mean"])
 # ------
 # ----------------
 
@@ -222,10 +287,10 @@ sd(spp.deriv[spp.deriv$Species=="TSCA" & spp.deriv$var=="precip" & spp.deriv$pre
 # Canopy class Temp/Precip gam
 # ----------------------------------------
 library(nlme)
-# load("processed_data/gam6_response_graph.Rdata")
+load("processed_data/gam6_response_graph.Rdata")
 load("processed_data/gam_results/gam6_canopy_species_add.Rdata") 
 cc.gam <- gam6; rm(gam6)
-# cc.graph <- ci.terms.graph; rm(ci.terms.graph)
+cc.graph <- ci.terms.graph; rm(ci.terms.graph)
 
 df.cc <- new.dat
 vars.fac <- c("Site.Code", "PlotID", "TreeID", "Canopy.Class", "Species", "spp.cc")
@@ -245,20 +310,96 @@ pred.cc <- c("tmean", "precip")
 # summary(cc.post)
 
 cc.deriv <- calc.derivs(model.gam=cc.gam, newdata=df.cc, vars=pred.cc)
+cc.post <- post.distns(model.gam=cc.gam, newdata=df.cc, vars=pred.cc, terms=T)
+cc.post[,c("Species", "Canopy.Class")] <- cc.deriv[,c("Species", "Canopy.Class")]
 summary(cc.deriv)
+summary(cc.post)
+
+
+# # Truncate out ranges we didn't observe in the data
+for(SPP in unique(df.cc$Species)){
+  for(CC in unique(df.cc$Canopy.Class)){
+    for(PRED in pred.cc){
+      cc.orig <- ifelse(CC=="Canopy", "C", paste(CC)) 
+      prange <- range(data.use[data.use$Species==paste(SPP) & data.use$Canopy.Class==paste(cc.orig),PRED], na.rm=T)
+      
+      # Insert NAs for predictor values outside the range of observed
+      # NOTE: Assumes things are in teh same order (which they should be)
+      rows.na <- which(cc.deriv$Species==SPP & cc.deriv$Canopy.Class==CC & cc.deriv$var==PRED & 
+                         !is.na(cc.deriv[cc.deriv$var==PRED,PRED]) & 
+                         (cc.deriv[,PRED]<prange[1] | cc.deriv[,PRED]>prange[2]))
+      cc.deriv[rows.na, PRED] <- NA
+      cc.post[rows.na, "x"] <- NA
+    }
+  }
+}
+cc.deriv[is.na(cc.deriv$tmean),c("mean", "lwr", "upr", "sig")] <- NA
+cc.deriv[is.na(cc.deriv$precip),c("mean", "lwr", "upr", "sig")] <- NA
+cc.post[is.na(cc.post$x),c("mean", "lwr", "upr")] <- NA
+summary(cc.deriv)
+summary(cc.post)
+
 
 # ----------------
 # Comparing canopy class effects given species slopes
 # ----------------
 # Means parameterization
-cc.temp1 <- lme(mean ~ Canopy.Class -1, random = ~tmean + Canopy.Class|Species, data=cc.deriv[cc.deriv$var=="tmean", ])
+mean(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="Canopy", "mean"], na.rm=T); 
+sd(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="Canopy", "mean"], na.rm=T) 
+
+mean(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="I", "mean"], na.rm=T); 
+sd(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="I", "mean"], na.rm=T) 
+
+mean(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="U", "mean"], na.rm=T); 
+sd(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="U", "mean"], na.rm=T) 
+
+summary(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean>16, "mean"]); 
+mean(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean>16, "mean"], na.rm=T); 
+sd(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean>16, "mean"], na.rm=T); 
+
+mean(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="I" & cc.deriv$tmean>16, "mean"], na.rm=T); 
+sd(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="I" & cc.deriv$tmean>16, "mean"], na.rm=T); 
+
+mean(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean>16, "mean"], na.rm=T); 
+sd(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean>16, "mean"], na.rm=T); 
+
+
+mean(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Canopy.Class=="Canopy", "mean"]); 
+sd(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Canopy.Class=="Canopy", "mean"]) 
+
+mean(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Canopy.Class=="I", "mean"]); 
+sd(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Canopy.Class=="I", "mean"]) 
+
+mean(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Canopy.Class=="U", "mean"]); 
+sd(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Canopy.Class=="U", "mean"]) 
+
+mean(cc.post[cc.post$Effect=="precip" & cc.post$Canopy.Class=="Canopy" & cc.post$x>600 & cc.post$x<900, "mean"], na.rm=T); 
+sd(cc.post[cc.post$Effect=="precip" & cc.post$Canopy.Class=="Canopy" & cc.post$x>600 & cc.post$x<900, "mean"], na.rm=T) 
+
+mean(cc.post[cc.post$Effect=="precip" & cc.post$Canopy.Class=="I" & cc.post$x>600 & cc.post$x<900, "mean"], na.rm=T); 
+sd(cc.post[cc.post$Effect=="precip" & cc.post$Canopy.Class=="I" & cc.post$x>600 & cc.post$x<900, "mean"], na.rm=T) 
+
+range(cc.post[cc.post$Effect=="precip" & cc.post$Canopy.Class=="U" & cc.post$x>600 & cc.post$x<900, "mean"],  na.rm=T); 
+mean(cc.post[cc.post$Effect=="precip" & cc.post$Canopy.Class=="U" & cc.post$x>600 & cc.post$x<900, "mean"], na.rm=T); 
+sd(cc.post[cc.post$Effect=="precip" & cc.post$Canopy.Class=="U" & cc.post$x>600 & cc.post$x<900, "mean"], na.rm=T) 
+
+
+# Looking at response, not sensitivity
+mean(cc.post[cc.post$Effect=="tmean" & cc.post$Canopy.Class=="U" & cc.post$x<16, "mean"], na.rm=T); 
+sd(cc.post[cc.post$Effect=="tmean" & cc.post$Canopy.Class=="U" & cc.post$x<16, "mean"], na.rm=T); 
+
+mean(cc.post[cc.post$Effect=="tmean" & cc.post$Canopy.Class=="Canopy" & cc.post$x<16, "mean"], na.rm=T); 
+sd(cc.post[cc.post$Effect=="tmean" & cc.post$Canopy.Class=="Canopy" & cc.post$x<16, "mean"], na.rm=T); 
+
+
+cc.temp1 <- lme(mean ~ Canopy.Class -1, random = ~tmean + Canopy.Class|Species, data=cc.deriv[cc.deriv$var=="tmean", ], na.action=na.omit)
 summary(cc.temp1)
 
 cc.precip1 <- lme(mean ~ Canopy.Class-1, random = ~precip + Canopy.Class|Species, data=cc.deriv[cc.deriv$var=="precip", ])
 summary(cc.precip1)
 
 # Effects Parameterization (compare to canopy trees)
-cc.temp2 <- lme(mean ~ Canopy.Class , random = ~tmean + Canopy.Class|Species, data=cc.deriv[cc.deriv$var=="tmean", ])
+cc.temp2 <- lme(mean ~ Canopy.Class , random = ~tmean + Canopy.Class|Species, data=cc.deriv[cc.deriv$var=="tmean", ], na.action=na.omit)
 summary(cc.temp2)
 # anova(cc.temp)
 
@@ -279,16 +420,13 @@ summary(cc.precip2)
 # -----
 range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU","tmean"])
 
-# Looking at the range at which ACRU canopy plateaus
-acru.temp.ns <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"]
-
 # whole range
 acru.temp.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 acru.temp.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="I", "mean"]
 acru.temp.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="U", "mean"]
-mean(acru.temp.c); sd(acru.temp.c)
-mean(acru.temp.i); sd(acru.temp.i)
-mean(acru.temp.u); sd(acru.temp.u)
+mean(acru.temp.c, na.rm=T); sd(acru.temp.c, na.rm=T)
+mean(acru.temp.i, na.rm=T); sd(acru.temp.i, na.rm=T)
+mean(acru.temp.u, na.rm=T); sd(acru.temp.u, na.rm=T)
 
 acru.temp <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU", ])
 summary(acru.temp)
@@ -297,24 +435,28 @@ acru.temp2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="tmean" & cc
 summary(acru.temp2)
 
 
-# <14.53 (where canopy turns negative)
+# Looking at the range at which ACRU canopy plateaus
+acru.temp.ns <- range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"], na.rm=T)
+
+
+# <15.1 (where canopy turns negative)
 acru.temp.lo.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean<min(acru.temp.ns), "mean"]
 acru.temp.lo.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="I" & cc.deriv$tmean<min(acru.temp.ns), "mean"]
 acru.temp.lo.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean<min(acru.temp.ns), "mean"]
-mean(acru.temp.lo.c); sd(acru.temp.lo.c)
-mean(acru.temp.lo.i); sd(acru.temp.lo.i)
-mean(acru.temp.lo.u); sd(acru.temp.lo.u)
+mean(acru.temp.lo.c, na.rm=T); sd(acru.temp.lo.c, na.rm=T)
+mean(acru.temp.lo.i, na.rm=T); sd(acru.temp.lo.i, na.rm=T)
+mean(acru.temp.lo.u, na.rm=T); sd(acru.temp.lo.u, na.rm=T)
 
 acru.temp.lo <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$tmean<min(acru.temp.ns), ])
 summary(acru.temp.lo)
 
-# >15.72˚C (where canopy turns negative)
+# >15.8˚C (where canopy turns negative)
 acru.temp.hi.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean>max(acru.temp.ns), "mean"]
 acru.temp.hi.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="I" & cc.deriv$tmean>max(acru.temp.ns), "mean"]
 acru.temp.hi.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean>max(acru.temp.ns), "mean"]
-mean(acru.temp.hi.c); sd(acru.temp.hi.c)
-mean(acru.temp.hi.i); sd(acru.temp.hi.i)
-mean(acru.temp.hi.u); sd(acru.temp.hi.u)
+mean(acru.temp.hi.c, na.rm=T); sd(acru.temp.hi.c, na.rm=T)
+mean(acru.temp.hi.i, na.rm=T); sd(acru.temp.hi.i, na.rm=T)
+mean(acru.temp.hi.u, na.rm=T); sd(acru.temp.hi.u, na.rm=T)
 
 acru.temp.hi <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="ACRU"  & cc.deriv$tmean>max(acru.temp.ns), ])
 summary(acru.temp.hi)
@@ -326,15 +468,17 @@ summary(acru.temp.hi)
 range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU","precip"])
 
 # Looking at the range at which ACRU canopy plateaus
-acru.precip.ns <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"]
+range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+acru.precip.ns <- range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+acru.precip.ns
 
 # whole range
 acru.precip.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 acru.precip.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="I", "mean"]
 acru.precip.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="U", "mean"]
-mean(acru.precip.c); sd(acru.precip.c)
-mean(acru.precip.i); sd(acru.precip.i)
-mean(acru.precip.u); sd(acru.precip.u)
+mean(acru.precip.c, na.rm=T); sd(acru.precip.c, na.rm=T)
+mean(acru.precip.i, na.rm=T); sd(acru.precip.i, na.rm=T)
+mean(acru.precip.u, na.rm=T); sd(acru.precip.u, na.rm=T)
 
 acru.precip <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU", ])
 summary(acru.precip)
@@ -356,6 +500,37 @@ summary(acru.precip.lo)
 acru.precip.lo2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$precip<min(acru.precip.ns), ])
 summary(acru.precip.lo2)
 
+
+# ---
+# low precip2 -- below 400 mm (~20 percentile; consistent comparison across species) (where there is significant precip signal)
+# ---
+# SLOPES Comparison
+acru.precip.lo2.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$precip<400, "mean"]
+acru.precip.lo2.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="I" & cc.deriv$precip<400, "mean"]
+acru.precip.lo2.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$Canopy.Class=="U" & cc.deriv$precip<400, "mean"]
+mean(acru.precip.lo2.c); sd(acru.precip.lo2.c)
+mean(acru.precip.lo2.i); sd(acru.precip.lo2.i)
+mean(acru.precip.lo2.u); sd(acru.precip.lo2.u)
+
+acru.precip.lo.2 <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$precip<400, ])
+summary(acru.precip.lo.2)
+
+acru.precip.lo2.2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="ACRU" & cc.deriv$precip<400, ])
+summary(acru.precip.lo2.2)
+
+# EFFECTS comparison
+acru.precip.lo2.c.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="ACRU" & cc.post$Canopy.Class=="Canopy" & cc.post$x<400, "mean"]
+acru.precip.lo2.i.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="ACRU" & cc.post$Canopy.Class=="I" & cc.post$x<400, "mean"]
+acru.precip.lo2.u.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="ACRU" & cc.post$Canopy.Class=="U" & cc.post$x<400, "mean"]
+mean(acru.precip.lo2.c.eff, na.rm=T); sd(acru.precip.lo2.c.eff, na.rm=T)
+mean(acru.precip.lo2.i.eff, na.rm=T); sd(acru.precip.lo2.i.eff, na.rm=T)
+mean(acru.precip.lo2.u.eff, na.rm=T); sd(acru.precip.lo2.u.eff, na.rm=T)
+
+acru.precip.lo.2.eff <- lm(mean ~ Canopy.Class, data=cc.graph[cc.graph$Effect=="precip" & cc.graph$Species=="ACRU" & cc.graph$x<400, ])
+summary(acru.precip.lo.2.eff)
+
+# ---
+
 # -----
 # ------------
 
@@ -367,16 +542,21 @@ summary(acru.precip.lo2)
 # -----
 range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR","tmean"])
 
-# Looking at the range at which FAGR canopy plateaus
-fagr.temp.ns <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"]
-
 # whole range (dominant is non-temp significant)
 fagr.temp.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 fagr.temp.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="I", "mean"]
 fagr.temp.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="U", "mean"]
-mean(fagr.temp.c); sd(fagr.temp.c)
-mean(fagr.temp.i); sd(fagr.temp.i)
-mean(fagr.temp.u); sd(fagr.temp.u)
+mean(fagr.temp.c, na.rm=T); sd(fagr.temp.c, na.rm=T)
+mean(fagr.temp.i, na.rm=T); sd(fagr.temp.i, na.rm=T)
+mean(fagr.temp.u, na.rm=T); sd(fagr.temp.u, na.rm=T)
+
+
+# Looking at the range at which FAGR canopy plateaus
+range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="Canopy","tmean"], na.rm=T)
+fagr.temp.ns <- range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"], na.rm=T)
+
+fagr.temp.ns.u <- range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="U","tmean"], na.rm=T)
+
 
 fagr.temp <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="FAGR", ])
 summary(fagr.temp)
@@ -391,22 +571,54 @@ summary(fagr.temp2)
 range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR","precip"])
 
 # Looking at the range at which FAGR canopy plateaus
-fagr.precip.ns <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"]
-summary(fagr.precip.ns)
+range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+fagr.precip.ns <- range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+fagr.precip.ns
 
-# whole range
+# whole range (no portion of N.S. change)
 fagr.precip.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 fagr.precip.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="I", "mean"]
 fagr.precip.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="U", "mean"]
-mean(fagr.precip.c); sd(fagr.precip.c)
-mean(fagr.precip.i); sd(fagr.precip.i)
-mean(fagr.precip.u); sd(fagr.precip.u)
+mean(fagr.precip.c, na.rm=T); sd(fagr.precip.c, na.rm=T)
+mean(fagr.precip.i, na.rm=T); sd(fagr.precip.i, na.rm=T)
+mean(fagr.precip.u, na.rm=T); sd(fagr.precip.u, na.rm=T)
 
 fagr.precip <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR", ])
 summary(fagr.precip)
 
 fagr.precip2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR", ])
 summary(fagr.precip2)
+
+# ---
+# low precip2 -- below 400 mm (~20 percentile; consistent comparison across species) (where there is significant precip signal)
+# ---
+# SLOPES Comparison
+fagr.precip.lo2.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$precip<400, "mean"]
+fagr.precip.lo2.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="I" & cc.deriv$precip<400, "mean"]
+fagr.precip.lo2.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$Canopy.Class=="U" & cc.deriv$precip<400, "mean"]
+mean(fagr.precip.lo2.c, na.rm=T); sd(fagr.precip.lo2.c, na.rm=T)
+mean(fagr.precip.lo2.i, na.rm=T); sd(fagr.precip.lo2.i, na.rm=T)
+mean(fagr.precip.lo2.u, na.rm=T); sd(fagr.precip.lo2.u, na.rm=T)
+
+fagr.precip.lo.2 <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$precip<400, ])
+summary(fagr.precip.lo.2)
+
+fagr.precip.lo2.2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="FAGR" & cc.deriv$precip<400, ])
+summary(fagr.precip.lo2.2)
+
+# EFFECTS comparison
+fagr.precip.lo2.c.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="FAGR" & cc.post$Canopy.Class=="Canopy" & cc.post$x<400, "mean"]
+fagr.precip.lo2.i.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="FAGR" & cc.post$Canopy.Class=="I" & cc.post$x<400, "mean"]
+fagr.precip.lo2.u.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="FAGR" & cc.post$Canopy.Class=="U" & cc.post$x<400, "mean"]
+mean(fagr.precip.lo2.c.eff, na.rm=T); sd(fagr.precip.lo2.c.eff, na.rm=T)
+mean(fagr.precip.lo2.i.eff, na.rm=T); sd(fagr.precip.lo2.i.eff, na.rm=T)
+mean(fagr.precip.lo2.u.eff, na.rm=T); sd(fagr.precip.lo2.u.eff, na.rm=T)
+
+fagr.precip.lo.2.eff <- lm(mean ~ Canopy.Class, data=cc.graph[cc.graph$Effect=="precip" & cc.graph$Species=="FAGR" & cc.graph$x<400, ])
+summary(fagr.precip.lo.2.eff)
+
+# ---
+
 # -----
 # ------------
 
@@ -418,10 +630,6 @@ summary(fagr.precip2)
 # -----
 range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU","tmean"])
 
-# Looking at the range at which QURU canopy plateaus
-quru.temp.ns <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"]
-summary(quru.temp.ns)
-
 # whole range (dominant is non-temp significant for most of the range)
 quru.temp.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 quru.temp.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="I", "mean"]
@@ -429,6 +637,20 @@ quru.temp.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & cc.de
 mean(quru.temp.c); sd(quru.temp.c)
 mean(quru.temp.i); sd(quru.temp.i)
 mean(quru.temp.u); sd(quru.temp.u)
+
+# Looking at the range at which QURU canopy plateaus
+range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="Canopy","tmean"], na.rm=T)
+quru.temp.ns <- range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"], na.rm=T)
+quru.temp.ns
+
+# whole range (dominant is non-temp significant for most of the range)
+quru.temp.c.hi <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean>max(quru.temp.ns), "mean"]
+quru.temp.i.hi <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="I" & cc.deriv$tmean>max(quru.temp.ns), "mean"]
+quru.temp.u.hi <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean>max(quru.temp.ns), "mean"]
+mean(quru.temp.c.hi, na.rm=T); sd(quru.temp.c.hi, na.rm=T)
+mean(quru.temp.i.hi, na.rm=T); sd(quru.temp.i.hi, na.rm=T)
+mean(quru.temp.u.hi, na.rm=T); sd(quru.temp.u.hi, na.rm=T)
+
 
 quru.temp <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="QURU", ])
 summary(quru.temp)
@@ -457,16 +679,26 @@ summary(quru.temp.hi2)
 range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU","precip"])
 
 # Looking at the range at which QURU canopy plateaus
-quru.precip.ns <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"]
-summary(quru.precip.ns)
+range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+quru.precip.ns <- range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+quru.precip.ns
 
 # whole range
 quru.precip.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 quru.precip.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="I", "mean"]
 quru.precip.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="U", "mean"]
-mean(quru.precip.c); sd(quru.precip.c)
-mean(quru.precip.i); sd(quru.precip.i)
-mean(quru.precip.u); sd(quru.precip.u)
+mean(quru.precip.c, na.rm=T); sd(quru.precip.c, na.rm=T)
+mean(quru.precip.i, na.rm=T); sd(quru.precip.i, na.rm=T)
+mean(quru.precip.u, na.rm=T); sd(quru.precip.u, na.rm=T)
+
+# high precip range (where canopy is signif)
+quru.precip.hi.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$precip>max(quru.precip.ns), "mean"]
+quru.precip.hi.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="I" & cc.deriv$precip>max(quru.precip.ns), "mean"]
+quru.precip.hi.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="U" & cc.deriv$precip>max(quru.precip.ns), "mean"]
+mean(quru.precip.hi.c, na.rm=T); sd(quru.precip.hi.c, na.rm=T)
+mean(quru.precip.hi.i, na.rm=T); sd(quru.precip.hi.i, na.rm=T)
+mean(quru.precip.hi.u, na.rm=T); sd(quru.precip.hi.u, na.rm=T)
+mean(quru.precip.hi.u, na.rm=T)/mean(quru.precip.hi.c, na.rm=T)
 
 quru.precip <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU", ])
 summary(quru.precip)
@@ -480,6 +712,38 @@ summary(quru.precip.hi)
 
 quru.precip.hi2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$precip>max(quru.precip.ns), ])
 summary(quru.precip.hi2)
+
+# ---
+# low precip2 -- below 400 mm (~20 percentile; consistent comparison across species) (where there is significant precip signal)
+# ---
+# SLOPES Comparison
+quru.precip.lo2.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$precip<400, "mean"]
+quru.precip.lo2.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="I" & cc.deriv$precip<400, "mean"]
+quru.precip.lo2.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$Canopy.Class=="U" & cc.deriv$precip<400, "mean"]
+mean(quru.precip.lo2.c); sd(quru.precip.lo2.c)
+mean(quru.precip.lo2.i); sd(quru.precip.lo2.i)
+mean(quru.precip.lo2.u); sd(quru.precip.lo2.u)
+
+quru.precip.lo.2 <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$precip<400, ])
+summary(quru.precip.lo.2)
+
+quru.precip.lo2.2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="QURU" & cc.deriv$precip<400, ])
+summary(quru.precip.lo2.2)
+
+# EFFECTS comparison
+quru.precip.lo2.c.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="QURU" & cc.post$Canopy.Class=="Canopy" & cc.post$x<400, "mean"]
+quru.precip.lo2.i.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="QURU" & cc.post$Canopy.Class=="I" & cc.post$x<400, "mean"]
+quru.precip.lo2.u.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="QURU" & cc.post$Canopy.Class=="U" & cc.post$x<400, "mean"]
+mean(quru.precip.lo2.c.eff, na.rm=T); sd(quru.precip.lo2.c.eff, na.rm=T)
+mean(quru.precip.lo2.i.eff, na.rm=T); sd(quru.precip.lo2.i.eff, na.rm=T)
+mean(quru.precip.lo2.u.eff, na.rm=T); sd(quru.precip.lo2.u.eff, na.rm=T)
+
+
+quru.precip.lo.2.eff <- lm(mean ~ Canopy.Class, data=cc.graph[cc.graph$Effect=="precip" & cc.graph$Species=="QURU" & cc.graph$x<400, ])
+summary(quru.precip.lo.2.eff)
+
+# ---
+
 # -----
 # ------------
 
@@ -490,19 +754,44 @@ summary(quru.precip.hi2)
 # -----
 # Temperature
 # -----
-range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA","tmean"])
-
-# Looking at the range at which TSCA canopy plateaus
-tsca.temp.ns <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"]
-summary(tsca.temp.ns)
 
 # whole range (dominant is non-temp significant)
 tsca.temp.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 tsca.temp.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="I", "mean"]
 tsca.temp.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="U", "mean"]
-mean(tsca.temp.c); sd(tsca.temp.c)
-mean(tsca.temp.i); sd(tsca.temp.i)
-mean(tsca.temp.u); sd(tsca.temp.u)
+mean(tsca.temp.c, na.rm=T); sd(tsca.temp.c, na.rm=T)
+mean(tsca.temp.i, na.rm=T); sd(tsca.temp.i, na.rm=T)
+mean(tsca.temp.u, na.rm=T); sd(tsca.temp.u, na.rm=T)
+
+
+trange.u <- range(data.use[data.use$Species=="TSCA" & data.use$Canopy.Class=="U","tmean"], na.rm=T)
+tsca.temp.u2 <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean>=trange.u[1], "mean"]
+tsca.temp.c2 <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean>=trange.u[1], "mean"]
+mean(tsca.temp.u2, na.rm=T); sd(tsca.temp.u2, na.rm=T)
+mean(tsca.temp.c2, na.rm=T); sd(tsca.temp.c2, na.rm=T)
+mean(tsca.temp.u2, na.rm=T)/mean(tsca.temp.c2, na.rm=T)
+
+# Looking at the range at which TSCA canopy plateaus
+range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA","tmean"], na.rm=T)
+tsca.temp.ns <- range(cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","tmean"], na.rm=T)
+tsca.temp.ns
+
+# high temp range (where canopy is signif)
+TSCA.temp.hi.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean>max(tsca.temp.ns), "mean"]
+TSCA.temp.hi.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="I" & cc.deriv$tmean>max(tsca.temp.ns), "mean"]
+TSCA.temp.hi.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean>max(tsca.temp.ns), "mean"]
+mean(TSCA.temp.hi.c, na.rm=T); sd(TSCA.temp.hi.c, na.rm=T)
+mean(TSCA.temp.hi.i, na.rm=T); sd(TSCA.temp.hi.i, na.rm=T)
+mean(TSCA.temp.hi.u, na.rm=T); sd(TSCA.temp.hi.u, na.rm=T)
+
+# lo temp range (where canopy is signif)
+TSCA.temp.lo.c <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$tmean<min(tsca.temp.ns), "mean"]
+TSCA.temp.lo.i <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="I" & cc.deriv$tmean<min(tsca.temp.ns), "mean"]
+TSCA.temp.lo.u <- cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="U" & cc.deriv$tmean<min(tsca.temp.ns), "mean"]
+mean(TSCA.temp.lo.c, na.rm=T); sd(TSCA.temp.lo.c, na.rm=T)
+mean(TSCA.temp.lo.i, na.rm=T); sd(TSCA.temp.lo.i, na.rm=T)
+mean(TSCA.temp.lo.u, na.rm=T); sd(TSCA.temp.lo.u, na.rm=T)
+
 
 tsca.temp <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="tmean" & cc.deriv$Species=="TSCA", ])
 summary(tsca.temp)
@@ -528,16 +817,17 @@ summary(tsca.temp.abs2)
 range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA","precip"])
 
 # Looking at the range at which TSCA canopy plateaus
-tsca.precip.ns <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"]
-summary(tsca.precip.ns)
+range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+tsca.precip.ns <- range(cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & is.na(cc.deriv$sig) & cc.deriv$Canopy.Class=="Canopy","precip"], na.rm=T)
+tsca.precip.ns
 
 # whole range
 tsca.precip.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="Canopy", "mean"]
 tsca.precip.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="I", "mean"]
 tsca.precip.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="U", "mean"]
-mean(tsca.precip.c); sd(tsca.precip.c)
-mean(tsca.precip.i); sd(tsca.precip.i)
-mean(tsca.precip.u); sd(tsca.precip.u)
+mean(tsca.precip.c, na.rm=T); sd(tsca.precip.c, na.rm=T)
+mean(tsca.precip.i, na.rm=T); sd(tsca.precip.i, na.rm=T)
+mean(tsca.precip.u, na.rm=T); sd(tsca.precip.u, na.rm=T)
 
 
 tsca.precip <- lm(mean ~ precip*Canopy.Class - Canopy.Class - precip -1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA", ])
@@ -550,6 +840,37 @@ summary(tsca.precip.lo)
 # Hi precip where Canopy is NOT sensitive
 tsca.precip.hi <- lm(mean ~ precip*Canopy.Class - Canopy.Class - precip -1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$precip>min(tsca.precip.ns), ])
 summary(tsca.precip.hi)
+
+# ---
+# low precip2 -- below 400 mm (~20 percentile; consistent comparison across species) (where there is significant precip signal)
+# ---
+# SLOPES Comparison
+tsca.precip.lo2.c <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="Canopy" & cc.deriv$precip<400, "mean"]
+tsca.precip.lo2.i <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="I" & cc.deriv$precip<400, "mean"]
+tsca.precip.lo2.u <- cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$Canopy.Class=="U" & cc.deriv$precip<400, "mean"]
+mean(tsca.precip.lo2.c); sd(tsca.precip.lo2.c)
+mean(tsca.precip.lo2.i); sd(tsca.precip.lo2.i)
+mean(tsca.precip.lo2.u); sd(tsca.precip.lo2.u)
+
+tsca.precip.lo.2 <- lm(mean ~ Canopy.Class, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$precip<400, ])
+summary(tsca.precip.lo.2)
+
+tsca.precip.lo2.2 <- lm(mean ~ Canopy.Class-1, data=cc.deriv[cc.deriv$var=="precip" & cc.deriv$Species=="TSCA" & cc.deriv$precip<400, ])
+summary(tsca.precip.lo2.2)
+
+# EFFECTS comparison
+tsca.precip.lo2.c.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="TSCA" & cc.post$Canopy.Class=="Canopy" & cc.post$x<400, "mean"]
+tsca.precip.lo2.i.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="TSCA" & cc.post$Canopy.Class=="I" & cc.post$x<400, "mean"]
+tsca.precip.lo2.u.eff <- cc.post[cc.post$Effect=="precip" & cc.post$Species=="TSCA" & cc.post$Canopy.Class=="U" & cc.post$x<400, "mean"]
+mean(tsca.precip.lo2.c.eff, na.rm=T); sd(tsca.precip.lo2.c.eff, na.rm=T)
+mean(tsca.precip.lo2.i.eff, na.rm=T); sd(tsca.precip.lo2.i.eff, na.rm=T)
+mean(tsca.precip.lo2.u.eff, na.rm=T); sd(tsca.precip.lo2.u.eff, na.rm=T)
+
+
+tsca.precip.lo.2.eff <- lm(mean ~ Canopy.Class, data=cc.graph[cc.graph$Effect=="precip" & cc.graph$Species=="TSCA" & cc.graph$x<400, ])
+summary(tsca.precip.lo.2.eff)
+
+# ---
 
 # -----
 # ------------
