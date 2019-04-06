@@ -80,3 +80,30 @@ round(mean(ne.all.tr.sum$year))
 round(sd(ne.all.tr.sum$year))
 max(ne.all.tr.sum$year)
 min(ne.all.tr.sum$year)
+
+site.abb <- c("GB", "GE", "LF", "NR", "PS", "RH", "TP", "HO")
+
+table1.df <- data.frame(site.code = site.abb,
+                        first.range1 = NA,
+                        first.range2 = NA,
+                        first.mean = NA,
+                        first.sd = NA,
+                        age.range1 = NA,
+                        age.range2 = NA,
+                        age.mean = NA,
+                        age.sd = NA)
+
+for(i in table1.df$site.code) {
+  table1.df[table1.df$site.code==i,"first.range1"] <- range(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"first"], na.rm=T)[1]
+  table1.df[table1.df$site.code==i,"first.range2"] <- range(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"first"], na.rm=T)[2]
+  table1.df[table1.df$site.code==i,"first.mean"] <- round(mean(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"first"], na.rm=T))
+  table1.df[table1.df$site.code==i,"first.sd"] <- round(sd(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"first"], na.rm=T))
+  
+  table1.df[table1.df$site.code==i,"age.range1"] <- range(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"year"], na.rm=T)[1]
+  table1.df[table1.df$site.code==i,"age.range2"] <- range(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"year"], na.rm=T)[2]
+  table1.df[table1.df$site.code==i,"age.mean"] <- round(mean(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"year"], na.rm=T))
+  table1.df[table1.df$site.code==i,"age.sd"] <- round(sd(ne.all.tr.sum[substr(ne.all.tr.sum$series,1,2)==i,"year"], na.rm=T))
+}
+
+table1.df
+write.csv(table1.df, file="table1.df.csv", row.names=F)

@@ -37,6 +37,8 @@ summary(cc.tree.data2)
 cc.tree.data2$Canopy.Class <- factor(cc.tree.data2$Canopy.Class, levels=c("Overstory", "Middle", "Understory"))
 cc.tree.data2$Species <- factor(cc.tree.data2$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
 
+
+
 # Pulling out outlier datapoint from the analysis
 # HUGE QURU labeled as suppressed
 # Pulling LF2029
@@ -71,7 +73,7 @@ for(i in unique(cc.tree.data$Site)){
 
 
 pdf("figures/prelim_figures/site_spp_cc_breakdown.pdf ", width= 13, height = 8.5)
-ggplot(data=cc.tree.data) + facet_wrap(~Site) +
+ggplot(data=cc.tree.data2) + facet_wrap(~Site) +
   geom_bar(aes(x=Species, fill=Canopy.Class)) +
   scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2")) +
   theme(axis.line=element_line(color="black"), 
@@ -96,7 +98,7 @@ dev.off()
 
 fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + facet_grid(Species~.) +
             geom_histogram(aes(x=DBH, fill=Canopy.Class), binwidth = 5) +
-            labs(x="Species", y="Count") +
+            labs(x="DBH (cm)", y="Count") +
             scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = "")) +
             theme(axis.line=element_line(color="black"), 
                   panel.grid.major=element_blank(), 
@@ -115,7 +117,8 @@ fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + facet_grid
             #legend.key = element_rect(fill = "white")) + 
             #guides(fill=guide_legend(nrow=1, title="")) +
             theme(axis.title.y= element_text(size=24, face="bold")) +
-            theme(axis.title.x= element_text(size=24, face="bold"))
+            theme(axis.title.x= element_text(size=24, face="bold")) +
+            theme(panel.spacing.y = unit(1.55,"lines"))
 
 pdf("figures/pub_figs/Fig1b.pdf ", width= 13, height = 8.5)
 fig1b
@@ -319,7 +322,9 @@ fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free"
           #legend.key = element_rect(fill = "white")) + 
           #guides(fill=guide_legend(nrow=1, title="")) +
           theme(axis.title.y= element_text(size=24, face="bold")) +
-          theme(axis.title.x= element_text(size=24, face="bold"))
+          theme(axis.title.x= element_text(size=24, face="bold")) +
+          theme(panel.spacing.x = unit(1.25,"lines"),
+                panel.spacing.y = unit(1.75,"lines"))
 
 
 # Looking at precip and temp data for the overall domain
@@ -328,11 +333,11 @@ ggplot(data  = data.use) +
   stat_smooth(aes(x=tmean, y=precip), method="lm")
 
 
-png("figures/pub_figs/Figure2.png", width=13, height=8, units="in", res=300)
+png("figures/pub_figs/Figure2.png", width=13, height=13, units="in", res=300)
 fig2
 dev.off()
 
-pdf("figures/pub_figs/Figure2.pdf", width=13, height=8)
+pdf("figures/pub_figs/Figure2.pdf", width=13, height=13)
 fig2
 dev.off()
 
@@ -378,13 +383,15 @@ fig3.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "
         legend.key = element_rect(fill = "white")) + 
   #guides(color=guide_legend(nrow=1),)+
   theme(axis.title.x = element_text(size=22, face="bold"),
-        axis.title.y= element_text(size=22, face="bold"))
+        axis.title.y= element_text(size=22, face="bold"))+
+  theme(panel.spacing.x = unit(1.25,"lines"),
+        panel.spacing.y = unit(1.75,"lines"))
 
-png("figures/pub_figs/Figure3_nosize_change_name.png", width=13, height=8, units="in", res=300)
+png("figures/pub_figs/Figure3_nosize_change_name.png", width=13, height=13, units="in", res=300)
 fig3.combo
 dev.off()
 
-pdf("figures/pub_figs/Figure3_nosize_changename.pdf", width=13, height=8)
+pdf("figures/pub_figs/Figure3_nosize_changename.pdf", width=13, height=13)
 fig3.combo
 dev.off()
 
@@ -435,8 +442,9 @@ fig4.combo <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("Tmean", "
                         legend.key = element_rect(fill = "white")) + 
                   #guides(color=guide_legend(nrow=1),)+
                   theme(axis.title.x = element_text(size=22, face="bold"),
-                        axis.title.y= element_text(size=22, face="bold"))
-
+                        axis.title.y= element_text(size=22, face="bold")) +
+                  theme(panel.spacing.x = unit(1.25,"lines"),
+                        panel.spacing.y = unit(1.75,"lines"))
 png("figures/pub_figs/Figure4_nosize_change_name.png", width=13, height=8, units="in", res=300)
 fig4.combo
 dev.off()
@@ -473,7 +481,9 @@ fig4.t <-  ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "tmean", ]) +
         legend.key = element_rect(fill = "white")) + 
   guides(color=guide_legend(nrow=1))+
   theme(axis.title.x = element_text(size=22, face="bold"),
-        axis.title.y= element_text(size=22, face="bold"))	
+        axis.title.y= element_text(size=22, face="bold")) +
+  theme(panel.spacing.x = unit(1.25,"lines"),
+        panel.spacing.y = unit(1.75,"lines"))
 
 
 fig4.p <-  ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "precip", ]) + 
@@ -504,7 +514,9 @@ fig4.p <-  ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "precip", ]) +
   #guides(color=guide_legend(nrow=1),)+
   theme(axis.title.x = element_text(size=22, face="bold"),
         axis.title.y= element_text(size=22, face="bold"))	+
-  theme(axis.text.y=element_blank())
+  theme(axis.text.y=element_blank()) +
+  theme(panel.spacing.x = unit(1.25,"lines"),
+        panel.spacing.y = unit(1.75,"lines"))
 
 
 # DBH fill by species-- turning into Figure 5
@@ -535,7 +547,9 @@ figS1.dbh <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "dbh.recon", 
         legend.key = element_rect(fill = "white")) + 
   guides(color=guide_legend(ncol=1, title=""), fill=guide_legend(title="")) +
   theme(axis.title.x = element_text(size=22, face="bold"),
-        axis.title.y= element_text(size=22, face="bold"))
+        axis.title.y= element_text(size=22, face="bold")) +
+  theme(panel.spacing.x = unit(1.25,"lines"),
+        panel.spacing.y = unit(1.75,"lines"))
 
 
 png("figures/pub_figs/FigureS1.png", width=13, height=8, units="in", res=300)
@@ -569,7 +583,9 @@ fig4.clim <- ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% c("tmean", "p
                 theme_bw()+
                 labs(x = "Climate Variable", y = expression(bold(paste("Effect on BAI (%)"))))+
                 theme(axis.line.x = element_line(color="black", size = 0.5),
-                      axis.line.y = element_line(color="black", size = 0.5))
+                      axis.line.y = element_line(color="black", size = 0.5)) +
+                theme(panel.spacing.x = unit(1.25,"lines"),
+                      panel.spacing.y = unit(1.75,"lines"))
               # ylim(-0.1,2.1)
 
 
@@ -613,7 +629,9 @@ fig5 <- ggplot(data=vpd.graph[vpd.graph$Effect %in% "vpd.max", ]) +
                   legend.key = element_rect(fill = "white")) + 
             #guides(color=guide_legend(nrow=1),)+
             theme(axis.title.x = element_text(size=22, face="bold"),
-                  axis.title.y= element_text(size=22, face="bold"))	
+                  axis.title.y= element_text(size=22, face="bold")) +
+            theme(panel.spacing.x = unit(1.25,"lines"),
+                  panel.spacing.y = unit(1.75,"lines"))
 
 png("figures/pub_figs/FigureS2.png", width=13, height=8, units="in", res=300)
 fig5
@@ -661,9 +679,11 @@ franken.graph <- ggplot(data=franken.fig[franken.fig$Effect %in% c("VPDmax", "Tm
                           legend.key = element_rect(fill = "white")) + 
                     #guides(color=guide_legend(nrow=1),)+
                     theme(axis.title.x = element_text(size=22, face="bold"),
-                          axis.title.y= element_text(size=22, face="bold"))	
+                          axis.title.y= element_text(size=22, face="bold")) +
+                    theme(panel.spacing.x = unit(1.25,"lines"),
+                          panel.spacing.y = unit(1.75,"lines"))
 
-pdf(file="figures/pub_figs/franken_graph.pdf", width=13, height=10)
+pdf(file="figures/pub_figs/franken_graph.pdf", width=13, height=13)
 franken.graph
 dev.off()
 

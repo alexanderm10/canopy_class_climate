@@ -113,7 +113,7 @@ ggplot(data=dat.map) +
   coord_equal()
 
 
-dev.off()
+# dev.off()
 
 #######################################################
 # Making map of neil's expanded network
@@ -147,7 +147,7 @@ ggplot(data=dat.map.neil) +
 
 
 # Combining maps together together
-dat.map.all <- rbind(dat.map, dat.map.neil)
+dat.map.all <- rbind(dat.map[,c("Spp", "Lat", "Lon", "type")], dat.map.neil)
 
 png("figures/grant_map.png", width=10, height=5, units="in", res=300)
 ggplot(data=dat.map.all) +
