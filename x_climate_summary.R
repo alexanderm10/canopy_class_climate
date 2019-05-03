@@ -74,3 +74,86 @@ ggplot(clim.stack) + facet_grid(variable~., scale="free_y") +
   geom_ribbon(aes(x=Year,ymin=lower, ymax=upper), alpha=0.5) +
   geom_line(aes(x=Year, y=value)) +
   theme_bw()
+
+
+summary(clim.stack)
+
+mean.t <- mean(clim.stack[clim.stack$variable %in% "tmean","value"])
+
+
+warm.stripes <- data.frame(Year=unique(clim.stack$Year),
+                           tmean = clim.stack[clim.stack$variable %in% "tmean","value"],
+                           mean.t = mean.t)
+
+head(warm.stripes)
+
+warm.stripes$diff <- warm.stripes$tmean - mean.t
+summary(warm.stripes)
+
+warm <- ggplot(data=warm.stripes) +
+  geom_bar(aes(x=Year, y=1, fill=diff, group=Year), stat="identity") +
+  scale_fill_gradient2(low="dodgerblue3", mid="white", high="darkred", limits=c(-1.5,1.5), breaks=c(-1.5,-1,-0.5,0,0.5,1,1.5)) +
+  labs(x="Year", y="", fill="", title="NEUS Mean GS Temp") +
+  theme(axis.line=element_line(color="black"), 
+        panel.grid.major=element_blank(), 
+        panel.grid.minor=element_blank(), 
+        panel.border=element_blank(),  
+        panel.background=element_blank(), 
+        axis.text.x=element_text(angle=0, color="black", size=16, vjust= 0.5, face="bold"), 
+        axis.text.y=element_blank(), 
+        strip.text=element_text(face="bold", size=22),
+        axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5),
+        legend.position="top",
+        legend.key.size = unit(0.75, "cm"),
+        legend.text = element_text(size=22),
+        legend.title = element_text(size=22),
+        legend.key = element_rect(fill = "white")) + 
+  guides(fill = guide_colourbar(barwidth = 25, barheight = 5,title="")) +
+  theme(axis.title.y= element_text(size=24, face="bold")) +
+  theme(axis.title.x= element_text(size=24, face="bold")) +
+  scale_x_continuous(breaks  = seq(1890,2020, by=10))
+
+
+mean.p <- mean(clim.stack[clim.stack$variable %in% "precip","value"])
+
+
+wet.stripes <- data.frame(Year=unique(clim.stack$Year),
+                          precip = clim.stack[clim.stack$variable %in% "precip","value"],
+                           mean.p = mean.p)
+
+head(wet.stripes)
+
+wet.stripes$diff <- wet.stripes$precip - mean.p
+summary(wet.stripes)
+
+wet <- ggplot(data=wet.stripes) +
+  geom_bar(aes(x=Year, y=1, fill=diff, group=Year), stat="identity") +
+  scale_fill_gradient2(low="chocolate4", mid="white", high="forestgreen") +
+  labs(x="Year", y="", fill="", title="NEUS Mean GS Precip") +
+  theme(axis.line=element_line(color="black"), 
+        panel.grid.major=element_blank(), 
+        panel.grid.minor=element_blank(), 
+        panel.border=element_blank(),  
+        panel.background=element_blank(), 
+        axis.text.x=element_text(angle=0, color="black", size=16, vjust= 0.5, face="bold"), 
+        axis.text.y=element_blank(), 
+        strip.text=element_text(face="bold", size=22),
+        axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5),
+        legend.position="top",
+        legend.key.size = unit(0.75, "cm"),
+        legend.text = element_text(size=22),
+        legend.title = element_text(size=22),
+        legend.key = element_rect(fill = "white")) + 
+  guides(fill = guide_colourbar(barwidth = 25, barheight = 5,title="")) +
+  theme(axis.title.y= element_text(size=24, face="bold")) +
+  theme(axis.title.x= element_text(size=24, face="bold")) +
+  scale_x_continuous(breaks  = seq(1890,2020, by=10))
+
+
+library(cowplot)
+
+png("figures/climate_deviations.png", height=15, width=30, res=300, unit="in")
+  plot_grid(warm,wet,align = c("v","h"), nrow = 2)
+dev.off()
