@@ -90,8 +90,25 @@ head(warm.stripes)
 warm.stripes$diff <- warm.stripes$tmean - mean.t
 summary(warm.stripes)
 
+# Setting theme
+theme_strip <- theme_minimal()+
+  theme(axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.title = element_blank(),
+        panel.grid.major=element_blank(),
+        legend.title = element_blank(),
+        axis.text.x=element_text(vjust=3),
+        panel.grid.minor=element_blank(),
+        plot.title=element_text(size=14,face="bold")
+  )
+
+library(RColorBrewer)
+col_strip <- brewer.pal(11,"RdBu")
+
+brewer.pal.info
+
 warm <- ggplot(data=warm.stripes) +
-  geom_bar(aes(x=Year, y=1, fill=diff, group=Year), stat="identity") +
+  geom_tile(aes(x=Year, y=1, fill=diff, group=Year), stat="identity") +
   scale_fill_gradient2(low="dodgerblue3", mid="white", high="darkred", limits=c(-1.5,1.5), breaks=c(-1.5,-1,-0.5,0,0.5,1,1.5)) +
   labs(x="Year", y="", fill="", title="NEUS Mean GS Temp") +
   theme(axis.line=element_line(color="black"), 
@@ -103,13 +120,14 @@ warm <- ggplot(data=warm.stripes) +
         axis.text.y=element_blank(), 
         strip.text=element_text(face="bold", size=22),
         axis.line.x = element_line(color="black", size = 0.5),
-        axis.line.y = element_line(color="black", size = 0.5),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
         legend.position="top",
         legend.key.size = unit(0.75, "cm"),
-        legend.text = element_text(size=22),
+        legend.text = element_text(size=18),
         legend.title = element_text(size=22),
         legend.key = element_rect(fill = "white")) + 
-  guides(fill = guide_colourbar(barwidth = 25, barheight = 5,title="")) +
+  guides(fill = guide_colourbar(barwidth = 15, barheight = 3,title="")) +
   theme(axis.title.y= element_text(size=24, face="bold")) +
   theme(axis.title.x= element_text(size=24, face="bold")) +
   scale_x_continuous(breaks  = seq(1890,2020, by=10))
@@ -128,7 +146,7 @@ wet.stripes$diff <- wet.stripes$precip - mean.p
 summary(wet.stripes)
 
 wet <- ggplot(data=wet.stripes) +
-  geom_bar(aes(x=Year, y=1, fill=diff, group=Year), stat="identity") +
+  geom_tile(aes(x=Year, y=1, fill=diff, group=Year), stat="identity") +
   scale_fill_gradient2(low="chocolate4", mid="white", high="forestgreen") +
   labs(x="Year", y="", fill="", title="NEUS Mean GS Precip") +
   theme(axis.line=element_line(color="black"), 
@@ -140,20 +158,59 @@ wet <- ggplot(data=wet.stripes) +
         axis.text.y=element_blank(), 
         strip.text=element_text(face="bold", size=22),
         axis.line.x = element_line(color="black", size = 0.5),
-        axis.line.y = element_line(color="black", size = 0.5),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
         legend.position="top",
         legend.key.size = unit(0.75, "cm"),
-        legend.text = element_text(size=22),
+        legend.text = element_text(size=18),
         legend.title = element_text(size=22),
         legend.key = element_rect(fill = "white")) + 
-  guides(fill = guide_colourbar(barwidth = 25, barheight = 5,title="")) +
+  guides(fill = guide_colourbar(barwidth = 15, barheight = 3,title="")) +
   theme(axis.title.y= element_text(size=24, face="bold")) +
   theme(axis.title.x= element_text(size=24, face="bold")) +
   scale_x_continuous(breaks  = seq(1890,2020, by=10))
 
 
+mean.vpd.max <- mean(clim.stack[clim.stack$variable %in% "vpd.max","value"])
+
+
+vpd.stripes <- data.frame(Year=unique(clim.stack$Year),
+                          vpd.max = clim.stack[clim.stack$variable %in% "vpd.max","value"],
+                          mean.vpd.max = mean.vpd.max)
+
+head(vpd.stripes)
+
+vpd.stripes$diff <- vpd.stripes$vpd.max - mean.vpd.max
+summary(vpd.stripes)
+
+vpd <- ggplot(data=vpd.stripes) +
+  geom_tile(aes(x=Year, y=1, fill=diff, group=Year), stat="identity") +
+  scale_fill_gradient2(low="goldenrod", mid="white", high="orchid") +
+  labs(x="Year", y="", fill="", title="NEUS Mean GS VPDmax", caption = "PRISM data") +
+  theme(axis.line=element_line(color="black"), 
+        panel.grid.major=element_blank(), 
+        panel.grid.minor=element_blank(), 
+        panel.border=element_blank(),  
+        panel.background=element_blank(), 
+        axis.text.x=element_text(angle=0, color="black", size=16, vjust= 0.5, face="bold"), 
+        axis.text.y=element_blank(), 
+        strip.text=element_text(face="bold", size=22),
+        axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position="top",
+        legend.key.size = unit(0.75, "cm"),
+        legend.text = element_text(size=18),
+        legend.title = element_text(size=22),
+        legend.key = element_rect(fill = "white")) + 
+  guides(fill = guide_colourbar(barwidth = 15, barheight = 3,title="")) +
+  theme(axis.title.y= element_text(size=24, face="bold")) +
+  theme(axis.title.x= element_text(size=24, face="bold")) +
+  scale_x_continuous(breaks  = seq(1890,2020, by=10))
+
+vpd
 library(cowplot)
 
 png("figures/climate_deviations.png", height=15, width=30, res=300, unit="in")
-  plot_grid(warm,wet,align = c("v","h"), nrow = 2)
+  plot_grid(warm,wet,vpd,align = c("v","h"), nrow = 3)
 dev.off()
