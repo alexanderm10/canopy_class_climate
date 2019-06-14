@@ -123,7 +123,7 @@ summary(test$Canopy.Class)
 
 summary(test)
 test[test$BA.inc==0, "BA.inc"] <- 1e-6
-save(test, file="overstory_understory_combined_data_use.Rdata")
+
 # test.gam3 <- test
 # test.gam3$Canopy.Class <- recode(test.gam3$Canopy.Class, "'C' = 'Canopy'; 'D'='Canopy'")
 # summary(test.gam3)
@@ -135,7 +135,7 @@ ps.tsca <- test[test$Site.Code %in%"PS" & test$Species %in% "TSCA",]
 
 # Found a QURU from Lyford that was an outlier.  Understory tree that was 58cm DBH; Pulling that tree
 test <- test[!test$TreeID %in% "LF2029",]
-
+save(test, file="overstory_understory_combined_data_use.Rdata")
 ################################################### 
 # HERE'S THE GAMM!!!
 ################################################### 

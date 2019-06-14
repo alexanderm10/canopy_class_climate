@@ -1,5 +1,6 @@
 # Reading in RW data for each tree
 # Will need to aggregate from the core level to the tree level
+library(stringr)
 
 ne.tree.data <- read.csv("processed_data/NE_tree_metadata.csv", header=T)
 summary(ne.tree.data$Site)
