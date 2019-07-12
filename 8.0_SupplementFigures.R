@@ -1,4 +1,5 @@
 library(mgcv)
+library(ggplot2)
 new.dat <- read.csv("processed_data/sensitivity_extaction_dataframe.csv")
 summary(new.dat)
 
@@ -102,59 +103,83 @@ ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "tmean", ]) +
   theme(axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5))
 
-png("figures/prelim_figures/SUPPLEMENT_gam6_sensitivities_size.png", height=8, width=8.5, units="in", res=120)
+# updating plots to resemble the nomenclature used in the manuscript
+# in code: TP = Harvard Forest Ameriflux (T)ower (P)lot
+
+summary(ci.terms.graph)
+
+ci.terms.graph$PlotID <- car::recode(ci.terms.graph$PlotID, "'HOW1'='HO1';'HOW2'='HO2';'HOW3'='HO3';
+                                     'NRP1'='NR1';'NRP2'='NR2';'NRP3'='NR3';'NRP4'='NR4';'TP1'='HF1';'TP2'='HF2'")
+
+png("figures/pub_figs/SUPPLEMENT_gam6_sensitivities_year.png", height=10, width=8.5, units="in", res=120)
 ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "Year" & ci.terms.graph$Species==paste(unique(ci.terms.graph$Species)[1]) &
                              ci.terms.graph$Canopy.Class==paste(unique(ci.terms.graph$Canopy.Class)[1]), ]) + 
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr)), alpha=0.5) +
-  geom_line(aes(x=x, y=exp(mean)))+
+  facet_wrap(~PlotID, scales="free_y", ncol=3) +
+  geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100), alpha=0.5) +
+  geom_line(aes(x=x, y=exp(mean)*100))+
   # scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
   # scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
-  geom_hline(yintercept=1, linetype="dashed") +
+  geom_hline(yintercept=100, linetype="dashed") +
   # coord_cartesian(ylim=c(0.5, 1.5)) +
   # scale_colour_manual("", values = cbbPalette) +
   # scale_fill_manual("", values = cbbPalette) +
-  labs(x = expression(bold("Year")), y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
-  theme(axis.line.x = element_line(color="black", size = 0.5),
+  labs(x = "Year", y = "Effect on BAI (%)") +
+  scale_x_continuous(expand=c(0,0)) +
+  theme(legend.position=c(0.2, 0.8),
+        legend.text = element_text(size=rel(2)),
+        legend.title = element_text(size=rel(2), face="bold"),
+        legend.key.size = unit(2, "lines"),
+        axis.text = element_text(size=rel(1), color="black"),
+        axis.title = element_text(size=rel(2), face="bold"),
+        axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
+        strip.text = element_text(size=rel(1.25), face="bold"),
         panel.grid = element_blank(),
         panel.background = element_rect(fill=NA, color="black"))
 dev.off()
 
 
-png("figures/prelim_figures/SUPPLEMENT_gam6_sensitivities_year.png", height=8, width=8.5, units="in", res=120)
+
+png("figures/pub_figs/SUPPLEMENT_gam6_sensitivities_size.png", height=8, width=8.5, units="in", res=120)
 ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "dbh.recon" & ci.terms.graph$Canopy.Class==paste(unique(ci.terms.graph$Canopy.Class)[1]), ]) + 
   # facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=exp(mean), color=Species))+
+  geom_ribbon(aes(x=x, ymin=exp(lwr)*100, ymax=exp(upr)*100, fill=Species), alpha=0.5) +
+  geom_line(aes(x=x, y=exp(mean)*100, color=Species), size=1.5)+
   # scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
   # scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
-  geom_hline(yintercept=1, linetype="dashed") +
-  # coord_cartesian(ylim=c(0.5, 1.5)) +
+  geom_hline(yintercept=100, linetype="dashed") +
+  coord_cartesian(ylim=c(0, 1500)) +
   # scale_colour_manual("", values = cbbPalette) +
   # scale_fill_manual("", values = cbbPalette) +
-  labs(x = expression(bold("Year")), y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
-  theme(axis.line.x = element_line(color="black", size = 0.5),
+  labs(x = expression(bold("DBH (cm)")), y = expression(bold("Effect on BAI (%)")))+
+  scale_x_continuous(expand=c(0,0)) +
+  theme(legend.position=c(0.2, 0.8),
+        legend.text = element_text(size=rel(2)),
+        legend.title = element_text(size=rel(2), face="bold"),
+        legend.key.size = unit(2, "lines"),
+        axis.text = element_text(size=rel(1.5), color="black"),
+        axis.title = element_text(size=rel(2), face="bold"),
+        axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
         panel.grid = element_blank(),
         panel.background = element_rect(fill=NA, color="black"))
 dev.off()
 
 
-png("figures/prelim_figures/SUPPLEMENT_gam6_sensitivities_size.png", height=8, width=8.5, units="in", res=120)
-ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "dbh.recon" & ci.terms.graph$Canopy.Class==paste(unique(ci.terms.graph$Canopy.Class)[1]), ]) + 
-  # facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=exp(mean), color=Species))+
-  # scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
-  # scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
-  geom_hline(yintercept=1, linetype="dashed") +
-  # coord_cartesian(ylim=c(0.5, 1.5)) +
-  # scale_colour_manual("", values = cbbPalette) +
-  # scale_fill_manual("", values = cbbPalette) +
-  labs(x = expression(bold("Diameter at Breast Height (cm)")), y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
-  theme(axis.line.x = element_line(color="black", size = 0.5),
-        axis.line.y = element_line(color="black", size = 0.5),
-        panel.grid = element_blank(),
-        panel.background = element_rect(fill=NA, color="black"))
-dev.off()
+# png("figures/prelim_figures/SUPPLEMENT_gam6_sensitivities_size.png", height=8, width=8.5, units="in", res=120)
+# ggplot(data=ci.terms.graph[ci.terms.graph$Effect %in% "dbh.recon" & ci.terms.graph$Canopy.Class==paste(unique(ci.terms.graph$Canopy.Class)[1]), ]) + 
+#   # facet_wrap(~PlotID, scales="free_y") +
+#   geom_ribbon(aes(x=x, ymin=exp(lwr), ymax=exp(upr), fill=Species), alpha=0.5) +
+#   geom_line(aes(x=x, y=exp(mean), color=Species))+
+#   # scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+#   # scale_color_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+#   geom_hline(yintercept=1, linetype="dashed") +
+#   # coord_cartesian(ylim=c(0.5, 1.5)) +
+#   # scale_colour_manual("", values = cbbPalette) +
+#   # scale_fill_manual("", values = cbbPalette) +
+#   labs(x = expression(bold("Diameter at Breast Height (cm)")), y = expression(bold(paste("Effect on BAI (mm"^"2","y"^"-1",")"))))+
+#   theme(axis.line.x = element_line(color="black", size = 0.5),
+#         axis.line.y = element_line(color="black", size = 0.5),
+#         panel.grid = element_blank(),
+#         panel.background = element_rect(fill=NA, color="black"))
+# dev.off()

@@ -61,7 +61,7 @@ ne.tree.sum <- rbind(har.how.sum, ne.sum)
 
 summary(ne.tree.sum)
 
-dne.tree.sum$site <- as.factor(ne.tree.sum$site)
+ne.tree.sum$site <- as.factor(ne.tree.sum$site)
 
 
 # Looking at age. Need to merge the .rwl files and look at the summary
@@ -153,6 +153,13 @@ summary(tree.d.sum)
 summary(tree.i.sum)
 summary(tree.u.sum)
 
+dim(tree.d.sum)
+dim(tree.i.sum)
+dim(tree.u.sum)
+
+# Checking to see if all sites are represented in each canpopy layer
+unique(substr(tree.u.sum$series,1,2))
+
 # merging all together to plot in ggplot
 tree.rw.sum <- rbind(tree.d.sum, tree.i.sum, tree.u.sum)
 dim(tree.rw.sum)
@@ -172,18 +179,18 @@ ggplot(data=tree.rw.sum) + # facet_grid(Site~.) +
         panel.grid.minor=element_blank(), 
         panel.border=element_blank(),  
         panel.background=element_blank(), 
-        axis.text.x=element_text(angle=0, color="black", size=18), 
-        axis.text.y=element_text(angle=0, color="black", size=18), 
+        axis.text.x=element_text(angle=0, color="black", size=22), 
+        axis.text.y=element_text(angle=0, color="black", size=22), 
         strip.text=element_text(face="bold", size=18),
         axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
         legend.position="top",
         legend.key.size = unit(0.75, "cm"),
-        legend.text = element_text(size=18),
+        legend.text = element_text(size=22),
         legend.key = element_rect(fill = "white")) + 
   #guides(color=guide_legend(nrow=1),)+
-  theme(axis.title.x = element_text(size=22, face="bold"),
-        axis.title.y= element_text(size=22, face="bold"))+
+  theme(axis.title.x = element_text(size=28, face="bold"),
+        axis.title.y= element_text(size=28, face="bold"))+
   theme(panel.spacing.x = unit(1.25,"lines"),
         panel.spacing.y = unit(1.75,"lines"))
 dev.off()
