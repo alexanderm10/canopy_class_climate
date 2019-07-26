@@ -57,50 +57,9 @@ dir.create(dir.out, recursive=T, showWarnings=F)
 # --------------------------------
 
 # --------------------------------
+# Setting up the base prediction data frame
 # --------------------------------
-predictors.all <- c("vpd.min", "vpd.max", "tmean", "precip", "Species", "dbh.recon", "Canopy.Class", "spp.plot", "Site.Code", "Year", "PlotID", "spp.cc") 
-spp.use <- c("TSCA", "ACRU", "QURU", "FAGR")
-n.out <- 100
 
-new.dat <- data.frame(Model="spp.cc",
-                      Extent=as.factor(paste(min(data.use$Year), max(data.use$Year), sep="-")))
-
-# Figure out which vars are numeric vs. factor
-vars.num <- vector()
-for(v in predictors.all){
-  if(class(data.use[,v]) %in% c("numeric", "integer")) vars.num <- c(vars.num, v)
-}
-
-# Getting the unique values of our factor variables and adding them to the data frame
-# need to skip group & group.cc so we aren't trying to match Carya & Quercus etc
-spline.by=c("Species", "Canopy.Class", "Site.Code", "PlotID", "spp.cc") # the "by" terms in the models you're running
-for(v in predictors.all[!predictors.all %in% vars.num & !(predictors.all %in% c("Site"))]){
-  # if v is a factor, merge all unique values into the dataframe
-  if(!(v %in% spline.by)){ # Only pull the full range of values for whatever the "by" term was by, otherwise everythign should have the same shape, just different intercepts
-    var.temp <- data.frame(x=unique(data.use[,v])[1]) 
-  }else {
-    var.temp <- data.frame(x=unique(data.use[,v])) 
-  }
-  names(var.temp) <- v
-  new.dat <- merge(new.dat, var.temp, all.x=T, all.y=T)
-}
-# Separate out Plot & Site
-
-# Matching the site for the plot
-for(p in unique(new.dat$PlotID)){
-  new.dat[new.dat$PlotID==p, "Site"] <- unique(data.use[data.use$PlotID==p, "Site.Code"])
-}
-new.dat$Site <- as.factor(new.dat$Site)
-summary(new.dat)
-
-# Putting the numerical variables into an array and adding it in 
-var.temp <- data.frame(array(dim=c(n.out, length(vars.num))))
-names(var.temp) <- vars.num
-for(v in vars.num){
-  var.temp[,v] <- seq(min(data.use[,v], na.rm=T), max(data.use[,v], na.rm=T), length.out=n.out)
-}								
-new.dat <- merge(new.dat, var.temp, all.x=T, all.y=T)
-summary(new.dat)
 # --------------------------------
 
 # --------------------------------
