@@ -168,6 +168,7 @@ for(SPP in unique(pred.out$Species)){
   png(file.path(dir.out, paste0("ClimateResponse_", SPP, ".png")), height=10, width=8, unit="in", res=120)
   print(
   ggplot(data=pred.out[pred.out$Effect %in% c("tmean", "precip", "vpd.max") & pred.out$Species==SPP,]) +
+    ggtitle(paste0("Climate Effects: ", SPP)) + 
     facet_grid(Site.Code ~ Effect, scales="free_x") +
     geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.5) +
     geom_line(aes(x=x, y=mean.bai, color=Canopy.Class)) +
