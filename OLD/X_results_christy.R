@@ -39,7 +39,7 @@ for(v in vars.fac){
 }
 summary(df.spp)
 
-pred.spp <- c("tmean", "precip")
+pred.spp <- c("tmean", "precip", "VPDmax")
 
 # spp.post <- post.distns(model.gam=spp.gam, newdata=df.spp, vars=pred.spp, terms=T)
 # spp.post$x <- as.numeric(spp.post$x) # making x numeric; will make factors NA; NA's are ok here
