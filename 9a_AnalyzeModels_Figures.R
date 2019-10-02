@@ -122,13 +122,31 @@ summary(null.out)
 null.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(null.out[,c("mean", "lwr", "upr")])
 summary(null.out)
 
+# Trim down to just the areas present for each species/plot etc:
+# Species DBH range
+for(SPP in unique(null.out$Species)){
+  dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  
+  null.out[null.out$Effect=="dbh.recon" & null.out$Species==paste(SPP) & (null.out$x<dbh.min | null.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+
+# Site
+for(SITE in unique(null.out$Site.Code)){
+  yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
+  yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
+  
+  null.out[null.out$Effect=="Year" & null.out$Site.Code==SITE & (null.out$x<yr.min | null.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
 summary(null.out[null.out$Effect=="dbh.recon" & null.out$PlotID==null.out$PlotID[1],])
 
-png(file.path(dir.figs, "SupplementalFigure3_0Null_SizeEffects.png"), height=8, width=5, unit="in", res=320)
+png(file.path(dir.figs, "SupplementalFigure03_0Null_SizeEffects.png"), height=8, width=5, unit="in", res=320)
 plot.size(dat.plot= null.out[null.out$PlotID==null.out$PlotID[1],])
 dev.off()
 
-png(file.path(dir.figs, "SupplementalFigure4_0Null_YearEffect.png"), height=8, width=8, unit="in", res=320)
+png(file.path(dir.figs, "SupplementalFigure04_0Null_YearEffect.png"), height=8, width=8, unit="in", res=320)
 plot.year(dat.plot= null.out[null.out$Species==null.out$Species[1],])
 dev.off()
 # ----------
@@ -175,6 +193,7 @@ dat.clim.base$Canopy.Class <- data.use$Canopy.Class[1]
 summary(dat.clim.base)
 dim(dat.clim.base)
 
+
 # Do the posterior predictions
 pred.clim.base <- post.distns(model.gam=gam.clim.base, model.name="clim.base", n=n, newdata=dat.clim.base, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
 clim.base.out <- pred.clim.base$ci
@@ -185,17 +204,35 @@ summary(clim.base.out)
 clim.base.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.base.out[,c("mean", "lwr", "upr")])
 summary(clim.base.out)
 
-png(file.path(dir.figs, "SupplementalFigure5_NaiveClim_SizeEffect.png"), height=8, width=5, unit="in", res=320)
+# Trim down to just the areas present for each species/plot etc:
+# Species DBH range
+for(SPP in unique(dat.clim.base$Species)){
+  dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  
+  clim.base.out[clim.base.out$Effect=="dbh.recon" & clim.base.out$Species==paste(SPP) & (clim.base.out$x<dbh.min | clim.base.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+
+# Site
+for(SITE in unique(dat.clim.base$Site.Code)){
+  yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
+  yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
+  
+  clim.base.out[clim.base.out$Effect=="Year" & clim.base.out$Site.Code==SITE & (clim.base.out$x<yr.min | clim.base.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+
+png(file.path(dir.figs, "SupplementalFigure05_NaiveClim_SizeEffect.png"), height=8, width=5, unit="in", res=320)
 plot.size(dat.plot = clim.base.out[clim.base.out$PlotID==clim.base.out$PlotID[1],])
 dev.off()
 
 
-
-png(file.path(dir.figs, "SupplementalFigure6_NaiveClim_YearEffect.png"), height=8, width=8, unit="in", res=120)
+png(file.path(dir.figs, "SupplementalFigure06_NaiveClim_YearEffect.png"), height=8, width=8, unit="in", res=120)
 plot.year(dat.plot=clim.base.out[clim.base.out$Species==clim.base.out$Species[1],])
 dev.off()
 
-png(file.path(dir.figs, "SupplementalFigure7_NaiveClim_ClimateEffects.png"), height=180, width=180, unit="mm", res=600)
+png(file.path(dir.figs, "SupplementalFigure07_NaiveClim_ClimateEffects.png"), height=180, width=180, unit="mm", res=600)
 plot.climate(dat.plot=clim.base.out[clim.base.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.base.out$PlotID==clim.base.out$PlotID[1] & clim.base.out$Species==clim.base.out$Species[1],], canopy=F, species=F)
 dev.off()
 # ----------
@@ -250,18 +287,52 @@ summary(clim.spp.out)
 clim.spp.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.spp.out[,c("mean", "lwr", "upr")])
 summary(clim.spp.out)
 
-png(file.path(dir.figs, "SupplementalFigure8_SppClim_SizeEffect.png"), height=8, width=5, unit="in", res=120)
+# Trim down to just the areas present for each species/plot etc:
+# Species DBH range
+for(SPP in unique(dat.clim.spp$Species)){
+  dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  
+  clim.spp.out[clim.spp.out$Effect=="dbh.recon" & clim.spp.out$Species==paste(SPP) & (clim.spp.out$x<dbh.min | clim.spp.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+
+# Site
+for(SITE in unique(dat.clim.spp$Site.Code)){
+  yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
+  yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
+  
+  clim.spp.out[clim.spp.out$Effect=="Year" & clim.spp.out$Site.Code==SITE & (clim.spp.out$x<yr.min | clim.spp.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+# Climate
+for(CC in unique(clim.spp.out$Species)){
+  rows.cc <- which(data.use$Species==paste(CC))
+  tmean.min <- min(data.use[rows.cc,"tmean"])
+  tmean.max <- max(data.use[rows.cc,"tmean"])
+  precip.min <- min(data.use[rows.cc,"precip"])
+  precip.max <- max(data.use[rows.cc,"precip"])
+  vpd.min <- min(data.use[rows.cc,"vpd.max"])
+  vpd.max <- max(data.use[rows.cc,"vpd.max"])
+  
+  clim.spp.out[clim.spp.out$Effect=="tmean" & clim.spp.out$Species==CC & (clim.spp.out$x<tmean.min | clim.spp.out$x>tmean.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  clim.spp.out[clim.spp.out$Effect=="precip" & clim.spp.out$Species==CC & (clim.spp.out$x<precip.min | clim.spp.out$x>precip.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  clim.spp.out[clim.spp.out$Effect=="vpd.max" & clim.spp.out$Species==CC & (clim.spp.out$x<vpd.min | clim.spp.out$x>vpd.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  
+}
+summary(clim.spp.out)
+
+png(file.path(dir.figs, "SupplementalFigure08_SppClim_SizeEffect.png"), height=8, width=5, unit="in", res=120)
 plot.size(dat.plot=clim.spp.out[ clim.spp.out$PlotID==clim.spp.out$PlotID[1],])
 dev.off()
 
-png(file.path(dir.figs, "SupplementalFigure9_SppClim_YearEffect.png"), height=8, width=8, unit="in", res=120)
+png(file.path(dir.figs, "SupplementalFigure09_SppClim_YearEffect.png"), height=8, width=8, unit="in", res=120)
 plot.year(dat.plot=clim.spp.out[ clim.spp.out$Species==clim.spp.out$Species[1],])
 dev.off()
 
 
 png(file.path(dir.figs, "Figure2_SppClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
 plot.climate(dat.plot=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", "vpd.max")  & clim.spp.out$PlotID==clim.spp.out$PlotID[1],], canopy=F, species=T)
-
 dev.off()
 # ----------
 
@@ -315,6 +386,45 @@ summary(clim.cc.out)
 clim.cc.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.cc.out[,c("mean", "lwr", "upr")])
 summary(clim.cc.out)
 
+# Trim down to just the areas present for each species/plot etc:
+# Species DBH range
+for(SPP in unique(dat.clim.cc$Species)){
+  dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  
+  clim.cc.out[clim.cc.out$Effect=="dbh.recon" & clim.cc.out$Species==paste(SPP) & (clim.cc.out$x<dbh.min | clim.cc.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+
+
+# Site
+for(SITE in unique(dat.clim.cc$Site.Code)){
+  yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
+  yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
+  
+  clim.cc.out[clim.cc.out$Effect=="Year" & clim.cc.out$Site.Code==SITE & (clim.cc.out$x<yr.min | clim.cc.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+# Climate
+for(CC in unique(clim.cc.out$Canopy.Class)){
+  rows.cc <- which(data.use$Canopy.Class==paste(CC))
+  tmean.min <- min(data.use[rows.cc,"tmean"])
+  tmean.max <- max(data.use[rows.cc,"tmean"])
+  precip.min <- min(data.use[rows.cc,"precip"])
+  precip.max <- max(data.use[rows.cc,"precip"])
+  vpd.min <- min(data.use[rows.cc,"vpd.max"])
+  vpd.max <- max(data.use[rows.cc,"vpd.max"])
+  
+  clim.cc.out[clim.cc.out$Effect=="tmean" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<tmean.min | clim.cc.out$x>tmean.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  clim.cc.out[clim.cc.out$Effect=="precip" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<precip.min | clim.cc.out$x>precip.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  clim.cc.out[clim.cc.out$Effect=="vpd.max" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<vpd.min | clim.cc.out$x>vpd.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  
+}
+clim.cc.out$Canopy.Class <- recode(clim.cc.out$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
+clim.cc.out$Canopy.Class <- factor(clim.cc.out$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
+summary(clim.cc.out)
+
+
 png(file.path(dir.figs, "SupplementalFigure10_CanopyClim_SizeEffect.png"), height=8, width=5, unit="in", res=120)
 plot.size(dat.plot=clim.cc.out[clim.cc.out$PlotID==clim.cc.out$PlotID[1] & clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1],])
 dev.off()
@@ -322,16 +432,15 @@ dev.off()
 
 png(file.path(dir.figs, "SupplementalFigure11_CanopyClim_YearEffect.png"), height=8, width=8, unit="in", res=120)
 plot.year(dat.plot=clim.cc.out[clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1] & clim.cc.out$Species==clim.cc.out$Species[1],])
-
 dev.off()
 
-png(file.path(dir.figs, "Figure3_CanopyClimate_CliamteEffect.png"), height=180, width=180, unit="mm", res=600)
+png(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
 plot.climate(dat.plot=clim.cc.out[clim.cc.out$Species==clim.cc.out$Species[1] & clim.cc.out$PlotID==clim.cc.out$PlotID[1],], species=F, canopy=T)
 dev.off()
 # ----------
 
 # ----------
-# Species x Canopy Climate Model: Species & Canopy-based climatic effects: single term
+# Pseudo-Interactive model: Species x Canopy Climate Model: Species & Canopy-based climatic effects: single term
 # ----------
 # Load gam.clim.spp.cc
 load(file.path(dir.out, "gam_clim_spp.cc.Rdata"))
@@ -381,33 +490,62 @@ summary(clim.spp.cc.out)
 clim.spp.cc.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.spp.cc.out[,c("mean", "lwr", "upr")])
 summary(clim.spp.cc.out)
 
-png(file.path(dir.figs, "YearResponse_Spp.Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.cc.out[clim.spp.cc.out$Effect=="Year" & clim.spp.cc.out$Canopy.Class==clim.spp.cc.out$Canopy.Class[1] & clim.spp.cc.out$Species==clim.spp.cc.out$Species[1],]) +
-  ggtitle("Species-Canopy Climate Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
+# Trim down to just the areas present for each species/plot etc:
+# Species DBH range
+for(SPP in unique(dat.clim.spp.cc$Species)){
+  dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  
+  clim.spp.cc.out[clim.spp.cc.out$Effect=="dbh.recon" & clim.spp.cc.out$Species==paste(SPP) & (clim.spp.cc.out$x<dbh.min | clim.spp.cc.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+
+
+# Site
+for(SITE in unique(dat.clim.spp.cc$Site.Code)){
+  yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
+  yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
+  
+  clim.spp.cc.out[clim.spp.cc.out$Effect=="Year" & clim.spp.cc.out$Site.Code==SITE & (clim.spp.cc.out$x<yr.min | clim.spp.cc.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+# Climate
+for(CC in unique(clim.spp.cc.out$spp.cc)){
+  rows.cc <- which(data.use$spp.cc==paste(CC))
+  tmean.min <- min(data.use[rows.cc,"tmean"])
+  tmean.max <- max(data.use[rows.cc,"tmean"])
+  precip.min <- min(data.use[rows.cc,"precip"])
+  precip.max <- max(data.use[rows.cc,"precip"])
+  vpd.min <- min(data.use[rows.cc,"vpd.max"])
+  vpd.max <- max(data.use[rows.cc,"vpd.max"])
+  
+  clim.spp.cc.out[clim.spp.cc.out$Effect=="tmean" & clim.spp.cc.out$spp.cc==CC & (clim.spp.cc.out$x<tmean.min | clim.spp.cc.out$x>tmean.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  clim.spp.cc.out[clim.spp.cc.out$Effect=="precip" & clim.spp.cc.out$spp.cc==CC & (clim.spp.cc.out$x<precip.min | clim.spp.cc.out$x>precip.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  clim.spp.cc.out[clim.spp.cc.out$Effect=="vpd.max" & clim.spp.cc.out$spp.cc==CC & (clim.spp.cc.out$x<vpd.min | clim.spp.cc.out$x>vpd.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  
+}
+clim.spp.cc.out$Canopy.Class <- recode(clim.spp.cc.out$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
+clim.spp.cc.out$Canopy.Class <- factor(clim.spp.cc.out$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
+summary(clim.spp.cc.out)
+
+png(file.path(dir.figs, "SupplementalFigure12_Pseudo-InteractiveClim_SizeEffect.png"), height=8, width=5, unit="in", res=120)
+plot.size(dat.plot=clim.spp.cc.out[clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],])
 dev.off()
 
-png(file.path(dir.figs, "SizeResponse_Spp.Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.cc.out[clim.spp.cc.out$Effect=="dbh.recon" & clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],]) +
-  ggtitle("Species-Canopy Climate Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
+
+png(file.path(dir.figs, "SupplementalFigure13_Pseudo-InteractiveClim_YearEffect.png"), height=8, width=8, unit="in", res=120)
+plot.year(dat.plot=clim.spp.cc.out[clim.spp.cc.out$Canopy.Class==clim.spp.cc.out$Canopy.Class[1] & clim.spp.cc.out$Species==clim.spp.cc.out$Species[1],])
 dev.off()
 
-png(file.path(dir.figs, "ClimateResponse_Spp.Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.cc.out[clim.spp.cc.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],]) +
-  ggtitle("Species-Canopy Climate Model") +
-  facet_grid(Species~Effect, scales="free_x") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Canopy.Class))
+
+png(file.path(dir.figs, "SupplementalFigure14_Pseudo-InteractiveClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
+plot.climate(dat.plot=clim.spp.cc.out[clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],], species = T, canopy = T)
 dev.off()
 # ----------
 
 
 # ----------
-# Species + Canopy Climate Model: Species & Canopy-based climatic effects: additive terms
+# Hypothesis-driven model: Species + Canopy Climate Model: Species & Canopy-based climatic effects: additive terms
 # ----------
 # Load gam.all.var
 load(file.path(dir.out, "gam_all_variables.Rdata"))
@@ -457,27 +595,54 @@ summary(all.var.out)
 all.var.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(all.var.out[,c("mean", "lwr", "upr")])
 summary(all.var.out)
 
-png(file.path(dir.figs, "YearResponse_Spp_Canopy_All.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=all.var.out[all.var.out$Effect=="Year" & all.var.out$Canopy.Class==all.var.out$Canopy.Class[1] & all.var.out$Species==all.var.out$Species[1],]) +
-  ggtitle("Species + Canopy ('All') Climate Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
+# Trim down to just the areas present for each species/plot etc:
+# Species DBH range
+for(SPP in unique(all.var.out$Species)){
+  dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
+  
+  all.var.out[all.var.out$Effect=="dbh.recon" & all.var.out$Species==paste(SPP) & (all.var.out$x<dbh.min | all.var.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+# Site
+for(SITE in unique(all.var.out$Site.Code)){
+  yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
+  yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
+  
+  all.var.out[all.var.out$Effect=="Year" & all.var.out$Site.Code==SITE & (all.var.out$x<yr.min | all.var.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+}
+
+# Climate
+for(CC in unique(all.var.out$spp.cc)){
+  rows.cc <- which(data.use$spp.cc==paste(CC))
+  tmean.min <- min(data.use[rows.cc,"tmean"])
+  tmean.max <- max(data.use[rows.cc,"tmean"])
+  precip.min <- min(data.use[rows.cc,"precip"])
+  precip.max <- max(data.use[rows.cc,"precip"])
+  vpd.min <- min(data.use[rows.cc,"vpd.max"])
+  vpd.max <- max(data.use[rows.cc,"vpd.max"])
+  
+  all.var.out[all.var.out$Effect=="tmean" & all.var.out$spp.cc==CC & (all.var.out$x<tmean.min | all.var.out$x>tmean.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  all.var.out[all.var.out$Effect=="precip" & all.var.out$spp.cc==CC & (all.var.out$x<precip.min | all.var.out$x>precip.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  all.var.out[all.var.out$Effect=="vpd.max" & all.var.out$spp.cc==CC & (all.var.out$x<vpd.min | all.var.out$x>vpd.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  
+}
+all.var.out$Canopy.Class <- recode(all.var.out$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
+all.var.out$Canopy.Class <- factor(all.var.out$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
+summary(all.var.out)
+
+
+png(file.path(dir.figs, "SupplementalFigure15_HypothesisClim_SizeEffect.png"), height=8, width=5, unit="in", res=120)
+plot.size(all.var.out[all.var.out$PlotID==all.var.out$PlotID[1],])
 dev.off()
 
-png(file.path(dir.figs, "SizeResponse_Spp_Canopy_All.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=all.var.out[all.var.out$Effect=="dbh.recon" & all.var.out$PlotID==all.var.out$PlotID[1],]) +
-  ggtitle("Species + Canopy ('All') Climate Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
+png(file.path(dir.figs, "SupplementalFigure16_HypothesisClim_YearEffect.png"), height=8, width=8, unit="in", res=120)
+plot.year(all.var.out[all.var.out$Species==all.var.out$Species[1],])
 dev.off()
 
-png(file.path(dir.figs, "ClimateResponse_Spp_Canopy_All.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=all.var.out[all.var.out$Effect%in% c("tmean", "precip", "vpd.max") & all.var.out$PlotID==all.var.out$PlotID[1],]) +
-  ggtitle("Species + Canopy ('All') Climate Model") +
-  facet_grid(Species~Effect, scales="free_x") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Canopy.Class))
+
+png(file.path(dir.figs, "Figure4_HypothesisClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
+plot.climate(all.var.out[all.var.out$PlotID==all.var.out$PlotID[1],], canopy=T, species=T)
 dev.off()
 # ----------
 

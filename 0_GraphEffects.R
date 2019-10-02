@@ -94,7 +94,9 @@ plot.climate <- function(dat.plot, canopy=F, species=F, ...){
     theme(axis.title.x = element_text(size=12, face="bold"),
           axis.title.y= element_text(size=12, face="bold")) +
     theme(panel.spacing.x = unit(1,"lines"),
-          panel.spacing.y = unit(1,"lines"))
+          panel.spacing.y = unit(1,"lines"),
+          strip.text.x = element_blank(),
+          plot.background = element_rect(fill=NA, color=NA))
   
   if(species){ 
     plot.base <- plot.base + facet_grid(Species ~ Effect) 
@@ -106,9 +108,9 @@ plot.climate <- function(dat.plot, canopy=F, species=F, ...){
     plot.base <- plot.base + 
       geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Canopy.Class), alpha=0.5) +
       geom_line(aes(x=x, y=mean.bai*100, color=Canopy.Class)) +
-      scale_colour_manual("", values = cbbPalette) +
-      scale_fill_manual("", values = cbbPalette)
-    
+      scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
+      scale_color_manual(values=c("#E69F00","#009E73", "#0072B2")) +
+      theme(legend.title = element_blank())
   }  else {
     plot.base <- plot.base + 
       geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100), alpha=0.5) +
