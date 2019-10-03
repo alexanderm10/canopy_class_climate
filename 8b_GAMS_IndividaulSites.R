@@ -149,14 +149,15 @@ for(SITE in unique(data.use$Site.Code)){
   
 }
 mod.stats
+pred.out$Site.Code <- factor(pred.out$Site.Code, levels=c("GB", "RH", "HO", "GE", "LF", "HF", "NR", "PS"))
 summary(pred.out)
+write.csv(pred.out, file.path(dir.out, "Post-Process_AllSites.csv"), row.names=F)
 # --------------------------------
 
 
 # --------------------------------
 # Plotting posterior comparisons
 # --------------------------------
-pred.out$Site.Code <- factor(pred.out$Site.Code, levels=c("GB", "RH", "HO", "GE", "LF", "HF", "NR", "PS"))
 ggplot(data=pred.out[pred.out$Effect=="tmean",]) +
   facet_grid(Site.Code ~ Species) +
   geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.5) +

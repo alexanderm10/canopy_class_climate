@@ -19,6 +19,11 @@ path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimat
 dir.figs <- file.path(path.google, "figures")
 
 source("0_GraphEffects.R")
+source("0_Calculate_GAMM_Posteriors_Updated.R")
+source("0_Calculate_GAMM_Derivs.R")
+
+n=100
+
 # --------------------------------
 # 1. Read in & format data
 # --------------------------------
@@ -79,8 +84,6 @@ round(range(model.comp$dev.exp), 3)
 # --------------------------------
 # 4. Calculating the posterior estimates for the effects for graphing
 # --------------------------------
-source("0_Calculate_GAMM_Posteriors.R")
-n=100
 
 # ----------
 # Null Model: No climatic effects
@@ -113,8 +116,8 @@ summary(dat.null)
 dim(dat.null)
 
 # Do the posterior predictions
-pred.null <- post.distns(model.gam=gam.null, model.name="null", n=n, newdata=dat.null, vars=c("dbh.recon", "Year"), terms=T)
-null.out <- pred.null$ci
+null.out <- post.distns(model.gam=gam.null, n=n, newdata=dat.null, vars=c("dbh.recon", "Year"), terms=T)
+# null.out <- pred.null$ci
 null.out[,c("Species")] <- dat.null[,c("Species")]
 null.out$x <- as.numeric(null.out$x) # making x numeric; will make factors NA
 summary(null.out)
@@ -195,8 +198,8 @@ dim(dat.clim.base)
 
 
 # Do the posterior predictions
-pred.clim.base <- post.distns(model.gam=gam.clim.base, model.name="clim.base", n=n, newdata=dat.clim.base, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.base.out <- pred.clim.base$ci
+clim.base.out <- post.distns(model.gam=gam.clim.base, n=n, newdata=dat.clim.base, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
+# clim.base.out <- pred.clim.base$ci
 clim.base.out[,c("Species")] <- dat.clim.base[,c("Species")]
 clim.base.out$x <- as.numeric(clim.base.out$x) # making x numeric; will make factors NA
 summary(clim.base.out)
@@ -278,8 +281,10 @@ summary(dat.clim.spp)
 dim(dat.clim.spp)
 
 # Do the posterior predictions
-pred.clim.spp <- post.distns(model.gam=gam.clim.spp, model.name="clim.spp", n=n, newdata=dat.clim.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.spp.out <- pred.clim.spp$ci
+pred.clim.spp <- post.distns(model.gam=gam.clim.spp, n=n, newdata=dat.clim.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
+deriv.clim.spp <- calc.derivs(model.gam=gam.clim.spp, newdata=dat.clim.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"))
+
+clim.spp.out <- pred.clim.spp
 clim.spp.out[,c("Species")] <- dat.clim.spp[,c("Species")]
 clim.spp.out$x <- as.numeric(clim.spp.out$x) # making x numeric; will make factors NA
 summary(clim.spp.out)
@@ -293,7 +298,9 @@ for(SPP in unique(dat.clim.spp$Species)){
   dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
   dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
   
-  clim.spp.out[clim.spp.out$Effect=="dbh.recon" & clim.spp.out$Species==paste(SPP) & (clim.spp.out$x<dbh.min | clim.spp.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  rows.na <- which(clim.spp.out$Effect=="dbh.recon" & clim.spp.out$Species==paste(SPP) & (clim.spp.out$x<dbh.min | clim.spp.out$x>dbh.max))
+  clim.spp.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.spp[rows.na,c("dbh.recon", "mean", "lwr", "upr", "sig")] <- NA
 }
 
 
@@ -302,7 +309,9 @@ for(SITE in unique(dat.clim.spp$Site.Code)){
   yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
   yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
   
-  clim.spp.out[clim.spp.out$Effect=="Year" & clim.spp.out$Site.Code==SITE & (clim.spp.out$x<yr.min | clim.spp.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  rows.na <- which(clim.spp.out$Effect=="Year" & clim.spp.out$Site.Code==SITE & (clim.spp.out$x<yr.min | clim.spp.out$x>yr.max))
+  clim.spp.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.spp[rows.na,c("Year", "mean", "lwr", "upr", "sig")] <- NA
 }
 
 # Climate
@@ -315,12 +324,22 @@ for(CC in unique(clim.spp.out$Species)){
   vpd.min <- min(data.use[rows.cc,"vpd.max"])
   vpd.max <- max(data.use[rows.cc,"vpd.max"])
   
-  clim.spp.out[clim.spp.out$Effect=="tmean" & clim.spp.out$Species==CC & (clim.spp.out$x<tmean.min | clim.spp.out$x>tmean.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
-  clim.spp.out[clim.spp.out$Effect=="precip" & clim.spp.out$Species==CC & (clim.spp.out$x<precip.min | clim.spp.out$x>precip.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
-  clim.spp.out[clim.spp.out$Effect=="vpd.max" & clim.spp.out$Species==CC & (clim.spp.out$x<vpd.min | clim.spp.out$x>vpd.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  rows.na <- which(clim.spp.out$Effect=="tmean" & clim.spp.out$Species==CC & (clim.spp.out$x<tmean.min | clim.spp.out$x>tmean.max))
+  clim.spp.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.spp[rows.na,c("tmean", "mean", "lwr", "upr", "sig")] <- NA
+  
+  
+  rows.na <- which(clim.spp.out$Effect=="precip" & clim.spp.out$Species==CC & (clim.spp.out$x<precip.min | clim.spp.out$x>precip.max))
+  clim.spp.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.spp[rows.na,c("precip", "mean", "lwr", "upr", "sig")] <- NA
+  
+  rows.na <- which(clim.spp.out$Effect=="vpd.max" & clim.spp.out$Species==CC & (clim.spp.out$x<vpd.min | clim.spp.out$x>vpd.max))
+  clim.spp.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.spp[rows.na,c("vpd.max", "mean", "lwr", "upr", "sig")] <- NA
   
 }
 summary(clim.spp.out)
+summary(deriv.clim.spp)
 
 png(file.path(dir.figs, "SupplementalFigure08_SppClim_SizeEffect.png"), height=8, width=5, unit="in", res=120)
 plot.size(dat.plot=clim.spp.out[ clim.spp.out$PlotID==clim.spp.out$PlotID[1],])
@@ -334,6 +353,31 @@ dev.off()
 png(file.path(dir.figs, "Figure2_SppClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
 plot.climate(dat.plot=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", "vpd.max")  & clim.spp.out$PlotID==clim.spp.out$PlotID[1],], canopy=F, species=T)
 dev.off()
+
+# Getting numbers for the manuscript
+summary(deriv.clim.spp)
+
+# "The two northern-distributed and late-successional species Tsuga canadensis and Fagus grandifolia have reduced growth at warmer temperatures and increased growth with high precipitation"
+mean(deriv.clim.spp[deriv.clim.spp$Species=="TSCA" & deriv.clim.spp$var=="tmean","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="TSCA" & deriv.clim.spp$var=="tmean","mean"]*100, na.rm=T)
+mean(deriv.clim.spp[deriv.clim.spp$Species=="TSCA" & deriv.clim.spp$var=="precip","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="TSCA" & deriv.clim.spp$var=="precip","mean"]*100, na.rm=T)
+
+
+mean(deriv.clim.spp[deriv.clim.spp$Species=="FAGR" & deriv.clim.spp$var=="tmean","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="FAGR" & deriv.clim.spp$var=="tmean","mean"]*100, na.rm=T)
+mean(deriv.clim.spp[deriv.clim.spp$Species=="FAGR" & deriv.clim.spp$var=="precip","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="FAGR" & deriv.clim.spp$var=="precip","mean"]*100, na.rm=T)
+
+
+# "In contrast, Quercus rubra displays nearly opposite responses with higher growth under warm conditions (mean slope = XX±XX) and reduced growth in wet conditions (mean slope = XX±XX).  "
+mean(deriv.clim.spp[deriv.clim.spp$Species=="QURU" & deriv.clim.spp$var=="tmean","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="QURU" & deriv.clim.spp$var=="tmean","mean"]*100, na.rm=T)
+mean(deriv.clim.spp[deriv.clim.spp$Species=="QURU" & deriv.clim.spp$var=="precip","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="QURU" & deriv.clim.spp$var=="precip","mean"]*100, na.rm=T)
+
+# "Acer rubrum shows optimal growth in moderate conditions with peak growth at XX˚C and XX mm precipitation"
+mean(clim.spp.out[!is.na(clim.spp.out$mean.bai) & clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="tmean" & clim.spp.out$mean.bai==max(clim.spp.out$mean.bai[clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="tmean"], na.rm=T), "x"])
+mean(clim.spp.out[!is.na(clim.spp.out$mean.bai) & clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="precip" & clim.spp.out$mean.bai==max(clim.spp.out$mean.bai[clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="precip"], na.rm=T), "x"])
+
+# "VPDmax responses among species ranged from insensitive in Fagus grandifolia (mean slope = XX±XX) to highly sensitive in Quercus rubra (mean slope = XX±XX)"
+mean(deriv.clim.spp[deriv.clim.spp$Species=="FAGR" & deriv.clim.spp$var=="vpd.max","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="FAGR" & deriv.clim.spp$var=="vpd.max","mean"]*100, na.rm=T)
+
+mean(deriv.clim.spp[deriv.clim.spp$Species=="QURU" & deriv.clim.spp$var=="vpd.max","mean"]*100, na.rm=T); sd(deriv.clim.spp[deriv.clim.spp$Species=="QURU" & deriv.clim.spp$var=="vpd.max","mean"]*100, na.rm=T)
 # ----------
 
 # ----------
@@ -377,8 +421,10 @@ summary(dat.clim.cc)
 dim(dat.clim.cc)
 
 # Do the posterior predictions
-pred.clim.cc <- post.distns(model.gam=gam.clim.cc, model.name="clim.cc", n=n, newdata=dat.clim.cc, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.cc.out <- pred.clim.cc$ci
+pred.clim.cc <- post.distns(model.gam=gam.clim.cc, n=n, newdata=dat.clim.cc, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
+deriv.clim.cc <- calc.derivs(model.gam=gam.clim.cc, newdata=dat.clim.cc, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"))
+
+clim.cc.out <- pred.clim.cc
 clim.cc.out[,c("Species", "Canopy.Class")] <- dat.clim.cc[,c("Species", "Canopy.Class")]
 clim.cc.out$x <- as.numeric(clim.cc.out$x) # making x numeric; will make factors NA
 summary(clim.cc.out)
@@ -392,7 +438,10 @@ for(SPP in unique(dat.clim.cc$Species)){
   dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
   dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
   
-  clim.cc.out[clim.cc.out$Effect=="dbh.recon" & clim.cc.out$Species==paste(SPP) & (clim.cc.out$x<dbh.min | clim.cc.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  rows.na <- which(clim.cc.out$Effect=="dbh.recon" & clim.cc.out$Species==paste(SPP) & (clim.cc.out$x<dbh.min | clim.cc.out$x>dbh.max))
+  clim.cc.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.cc[rows.na,c("dbh.recon", "mean", "lwr", "upr", "sig")] <- NA
+  
 }
 
 
@@ -402,7 +451,10 @@ for(SITE in unique(dat.clim.cc$Site.Code)){
   yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
   yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
   
-  clim.cc.out[clim.cc.out$Effect=="Year" & clim.cc.out$Site.Code==SITE & (clim.cc.out$x<yr.min | clim.cc.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  rows.na <- which(clim.cc.out$Effect=="Year" & clim.cc.out$Site.Code==SITE & (clim.cc.out$x<yr.min | clim.cc.out$x>yr.max))
+  clim.cc.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.cc[rows.na,c("Year", "mean", "lwr", "upr", "sig")] <- NA
+  
 }
 
 # Climate
@@ -415,15 +467,24 @@ for(CC in unique(clim.cc.out$Canopy.Class)){
   vpd.min <- min(data.use[rows.cc,"vpd.max"])
   vpd.max <- max(data.use[rows.cc,"vpd.max"])
   
-  clim.cc.out[clim.cc.out$Effect=="tmean" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<tmean.min | clim.cc.out$x>tmean.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
-  clim.cc.out[clim.cc.out$Effect=="precip" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<precip.min | clim.cc.out$x>precip.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
-  clim.cc.out[clim.cc.out$Effect=="vpd.max" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<vpd.min | clim.cc.out$x>vpd.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  rows.na <- which(clim.cc.out$Effect=="tmean" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<tmean.min | clim.cc.out$x>tmean.max))
+  clim.cc.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.cc[rows.na,c("Year", "mean", "lwr", "upr", "sig")] <- NA
+  
+  rows.na <- which(clim.cc.out$Effect=="precip" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<precip.min | clim.cc.out$x>precip.max))
+  clim.cc.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.cc[rows.na,c("Year", "mean", "lwr", "upr", "sig")] <- NA
+  
+  rows.na <- which(clim.cc.out$Effect=="vpd.max" & clim.cc.out$Canopy.Class==CC & (clim.cc.out$x<vpd.min | clim.cc.out$x>vpd.max))
+  clim.cc.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.clim.cc[rows.na,c("Year", "mean", "lwr", "upr", "sig")] <- NA
+  
   
 }
 clim.cc.out$Canopy.Class <- recode(clim.cc.out$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
 clim.cc.out$Canopy.Class <- factor(clim.cc.out$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
 summary(clim.cc.out)
-
+summary(deriv.clim.cc)
 
 png(file.path(dir.figs, "SupplementalFigure10_CanopyClim_SizeEffect.png"), height=8, width=5, unit="in", res=120)
 plot.size(dat.plot=clim.cc.out[clim.cc.out$PlotID==clim.cc.out$PlotID[1] & clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1],])
@@ -437,6 +498,27 @@ dev.off()
 png(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
 plot.climate(dat.plot=clim.cc.out[clim.cc.out$Species==clim.cc.out$Species[1] & clim.cc.out$PlotID==clim.cc.out$PlotID[1],], species=F, canopy=T)
 dev.off()
+
+# Getting numbers for results: 
+# "Overstory trees display increased growth with warm summer temperatures (mean slope = XX±XX), understory trees show the opposite pattern with strongly reduced growth under the same conditions (mean slope = XX±XX)."
+mean(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="Canopy" & deriv.clim.cc$var=="tmean","mean"]*100, na.rm=T); sd(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="Canopy" & deriv.clim.cc$var=="tmean","mean"]*100, na.rm=T)
+
+mean(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="U" & deriv.clim.cc$var=="tmean","mean"]*100, na.rm=T); sd(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="U" & deriv.clim.cc$var=="tmean","mean"]*100, na.rm=T)
+
+# "For precipitation, overstory trees show concerted growth increases (mean slope = XX±XX) up to XXX mm."
+max.canopy <- max(deriv.clim.cc$precip[deriv.clim.cc$Canopy.Class=="Canopy" & deriv.clim.cc$var=="precip" & !is.na(deriv.clim.cc$sig) & deriv.clim.cc$mean>0])
+summary(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="Canopy" & deriv.clim.cc$var=="precip" & deriv.clim.cc$precip>max.canopy & !is.na(deriv.clim.cc$precip) & !is.na(deriv.clim.cc$sig),])
+
+
+# "In contrast, understory trees display an overall negative growth response to increased precipitation (mean slope = XX±XX)."
+mean(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="U" & deriv.clim.cc$var=="precip","mean"]*100, na.rm=T); sd(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="U" & deriv.clim.cc$var=="precip","mean"]*100, na.rm=T)
+
+# "Overstory trees display consistently reduced growth with increasing VPDmax (mean slope = XX±XX)."
+summary(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="Canopy" & deriv.clim.cc$var=="vpd.max",])
+mean(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="Canopy" & deriv.clim.cc$var=="vpd.max","mean"]*100, na.rm=T); sd(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="Canopy" & deriv.clim.cc$var=="vpd.max","mean"]*100, na.rm=T)
+
+summary(deriv.clim.cc[deriv.clim.cc$Canopy.Class=="U" & deriv.clim.cc$var=="vpd.max",])
+
 # ----------
 
 # ----------
@@ -482,7 +564,9 @@ dim(dat.clim.spp.cc)
 
 # Do the posterior predictions
 pred.clim.spp.cc <- post.distns(model.gam=gam.clim.spp.cc, model.name="clim.spp.cc", n=n, newdata=dat.clim.spp.cc, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.spp.cc.out <- pred.clim.spp.cc$ci
+deriv.clim.spp.cc <- post.distns(model.gam=gam.clim.spp.cc, model.name="clim.spp.cc", n=n, newdata=dat.clim.spp.cc, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
+
+# clim.spp.cc.out <- pred.clim.spp.cc$ci
 clim.spp.cc.out[,c("Species", "Canopy.Class", "spp.cc")] <- dat.clim.spp.cc[,c("Species", "Canopy.Class", "spp.cc")]
 clim.spp.cc.out$x <- as.numeric(clim.spp.cc.out$x) # making x numeric; will make factors NA
 summary(clim.spp.cc.out)
@@ -524,7 +608,7 @@ for(CC in unique(clim.spp.cc.out$spp.cc)){
   clim.spp.cc.out[clim.spp.cc.out$Effect=="vpd.max" & clim.spp.cc.out$spp.cc==CC & (clim.spp.cc.out$x<vpd.min | clim.spp.cc.out$x>vpd.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
   
 }
-clim.spp.cc.out$Canopy.Class <- recode(clim.spp.cc.out$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
+clim.spp.cc.out$Canopy.Class <- car::recode(clim.spp.cc.out$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
 clim.spp.cc.out$Canopy.Class <- factor(clim.spp.cc.out$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
 summary(clim.spp.cc.out)
 
@@ -541,6 +625,7 @@ dev.off()
 png(file.path(dir.figs, "SupplementalFigure14_Pseudo-InteractiveClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
 plot.climate(dat.plot=clim.spp.cc.out[clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],], species = T, canopy = T)
 dev.off()
+
 # ----------
 
 
