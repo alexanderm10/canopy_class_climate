@@ -2,6 +2,10 @@ library(ggplot2); library(maps)
 library(car)
 library(gridExtra)
 library(grid)
+
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Revisions_Round2/"
+dir.figs <- file.path(path.google, "figures")
+
 #################################################
 # Figure 1
 # Map and canopy break down
@@ -10,7 +14,7 @@ library(grid)
 # Pair this with stacked barplots of species and canopy classes at each site
 
 # Barplots first
-load("overstory_understory_combined_data_use.Rdata")
+load("processed_data/overstory_understory_combined_data_use.Rdata")
 summary(test)
 
 # Need to transform back into tree-level data
@@ -45,7 +49,7 @@ cc.tree.data2$Species <- factor(cc.tree.data2$Species, levels=c("TSCA", "FAGR", 
 
 cc.tree.data2 <- cc.tree.data2[!cc.tree.data2$TreeID=="LF2029",]
 
-write.csv(cc.tree.data2, "canopy_class_tree_data.csv", row.names=F)
+write.csv(cc.tree.data2, "processed_data/canopy_class_tree_data.csv", row.names=F)
 for(i in unique(cc.tree.data$Site)){
   
   print(ggplot(data=cc.tree.data[cc.tree.data$Site==i,]) +
@@ -72,7 +76,7 @@ for(i in unique(cc.tree.data$Site)){
 }
 
 
-pdf("figures/prelim_figures/site_spp_cc_breakdown.pdf ", width= 13, height = 8.5)
+pdf("figures/site_spp_cc_breakdown.pdf ", width= 13, height = 8.5)
 ggplot(data=cc.tree.data2) + facet_wrap(~Site) +
   geom_bar(aes(x=Species, fill=Canopy.Class)) +
   scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2")) +
@@ -105,22 +109,22 @@ fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + facet_grid
         panel.grid.minor=element_blank(), 
         panel.border=element_blank(),  
         panel.background=element_blank(), 
-        axis.text.x=element_text(angle=0, color="black", size=16, vjust= 0.5), 
-        axis.text.y=element_text(angle=0, color="black", size=16), 
-        strip.text=element_text(face="bold", size=22),
+        axis.text.x=element_text(angle=0, color="black", size=8, vjust= 0.5), 
+        axis.text.y=element_text(angle=0, color="black", size=8), 
+        strip.text=element_text(face="bold", size=10),
         axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
         legend.position="top",
-        legend.text = element_text(size=18)) +
+        legend.text = element_text(size=12)) +
   #legend.key.size = unit(0.75, "cm"),
   #legend.text = element_text(size=22),
   #legend.key = element_rect(fill = "white")) + 
   #guides(fill=guide_legend(nrow=1, title="")) +
-  theme(axis.title.y= element_text(size=24, face="bold")) +
-  theme(axis.title.x= element_text(size=24, face="bold")) +
-  theme(panel.spacing.y = unit(1.55,"lines"))
+  theme(axis.title.y= element_text(size=12, face="bold")) +
+  theme(axis.title.x= element_text(size=12, face="bold")) +
+  theme(panel.spacing.y = unit(1,"lines"))
 
-pdf("figures/pub_figs/Fig1b.pdf ", width= 13, height = 8.5)
+pdf("figures/Fig1b.pdf ", width= 13, height = 8.5)
 fig1b
 dev.off()
 ######################################################
@@ -160,7 +164,9 @@ lon.max <- -70
 
 library(raster)
 # 10m land cover from Natural Earth http://www.naturalearthdata.com/downloads/10m-raster-data/10m-natural-earth-1/
-nat.earth <- stack("~malexander10/Dropbox/Research/mapping_data/base_layers/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif")
+# nat.earth <- "~/Dropbox/canopy_class_climate/map"
+# nat.earth <- stack("~malexander10/Dropbox/Research/mapping_data/base_layers/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif")
+nat.earth <- stack("~/Desktop/SpatialData/NaturalEarth/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif")
 
 # USFS forest cover http://www.mrlc.gov/nlcd11_data.php
 #nat.earth <- stack("base_layers/CONUSCartographic_2_8_16/Cartographic/nlcd2011_usfs_conus_canopy_cartographic.img")
@@ -191,21 +197,21 @@ fig1a <- ggplot(data=dat.map) +
   geom_tile(data=rast.table, aes(x=x, y=y), fill=rast.table$rgb) + # NOTE: fill MUST be outside of the aes otherwise it converts it to ggcolors
   geom_path(data=states,aes(x = Lon, y = Lat, group=group), color = "black", size=0.1) +
   geom_point(aes(x=Lon, y=Lat), color = "red", size=2.5, alpha=0.75) +
-  geom_text(data = dat.map[!dat.map$Site.Code %in% c("NR", "HF"),], aes(x=Lon+0.25, y=Lat+0.25, label = paste("",as.character(Site.Code), sep="")), color="black", size=5,fontface="bold") +
-  geom_text(data = dat.map[dat.map$Site.Code %in% "NR",], aes(x=Lon-0.25, y=Lat-0.25, label = paste("",as.character(Site.Code), sep="")), color="black", size=5,fontface="bold") +
-  geom_text(data = dat.map[dat.map$Site.Code %in% "HF",], aes(x=Lon-0.25, y=Lat-0.25, label = paste("",as.character(Site.Code), sep="")), color="black", size=5,fontface="bold") +
+  geom_text(data = dat.map[!dat.map$Site.Code %in% c("NR", "HF"),], aes(x=Lon+0.25, y=Lat+0.25, label = paste("",as.character(Site.Code), sep="")), color="black", size=3,fontface="bold") +
+  geom_text(data = dat.map[dat.map$Site.Code %in% "NR",], aes(x=Lon-0.25, y=Lat-0.25, label = paste("",as.character(Site.Code), sep="")), color="black", size=3,fontface="bold") +
+  geom_text(data = dat.map[dat.map$Site.Code %in% "HF",], aes(x=Lon-0.25, y=Lat-0.25, label = paste("",as.character(Site.Code), sep="")), color="black", size=3,fontface="bold") +
   # scale_color_manual(values="red", name="Data Type") +
   theme_bw() +
   theme(legend.position="none",
-        axis.text.x=element_text(angle=0, color="black", size=16, vjust= 0.5), 
-        axis.text.y=element_text(angle=0, color="black", size=16)) +
+        axis.text.x=element_text(angle=0, color="black", size=10, vjust= 0.5), 
+        axis.text.y=element_text(angle=0, color="black", size=10)) +
   scale_x_continuous(expand=c(0,0), name="Degrees Longitude", limits =c(lon.min - 0.25,lon.max +2.25)) +
   scale_y_continuous(expand=c(0,0), name="Degrees Latitude", limits= c(lat.min - 1,lat.max + 1)) +
   coord_equal() +
-  theme(axis.title.y= element_text(size=24, face="bold")) +
-  theme(axis.title.x= element_text(size=24, face="bold"))
+  theme(axis.title.y= element_text(size=12, face="bold")) +
+  theme(axis.title.x= element_text(size=12, face="bold"))
 
-png("figures/pub_figs/fig1a.png", width= 13, height = 8.5, unit="in", res = 300)
+png("figures/fig1a.png", width= 13, height = 8.5, unit="in", res = 300)
 fig1a
 dev.off()
 
@@ -218,18 +224,22 @@ dev.off()
 # dev.off()
 
 library(cowplot)
-png(file="figures/pub_figs/Figure1.png", width=15, height= 10, res=300, unit="in")
-plot_grid(fig1a, fig1b, align = c("v","h"), nrow = 1, rel_widths = c(0.4, 0.6), labels = c("A)", "B)"))
+png(file=file.path(dir.figs, "Figure1.png"), width=180, height=90, res=600, unit="mm")
+cowplot::plot_grid(fig1a, fig1b, align = c("v","h"), nrow = 1, rel_widths = c(0.4, 0.5), labels = c("A)", "B)"))
+dev.off()
+
+pdf(file=file.path(dir.figs, "Figure1.pdf"), width=180/25.4, height=90/25.4)
+cowplot::plot_grid(fig1a, fig1b, align = c("v","h"), nrow = 1, rel_widths = c(0.4, 0.5), labels = c("A)", "B)"))
 dev.off()
 
 
-png("figures/pub_figs/Figure1_presentation.png", width= 15, height = 9, unit="in", res = 300)
-grid.newpage()
-pushViewport(viewport(layout=grid.layout(nrow=1,ncol=2, widths=c(1.3,1,2))))
-print(fig1a, vp = viewport(layout.pos.row = 1, layout.pos.col=1))
-print(fig1b, vp = viewport(layout.pos.row = 1, layout.pos.col=2))	
-
-dev.off()
+# png("figures/pub_figs/Figure1_presentation.png", width= 15, height = 9, unit="in", res = 300)
+# grid.newpage()
+# pushViewport(viewport(layout=grid.layout(nrow=1,ncol=2, widths=c(1.3,1,2))))
+# print(fig1a, vp = viewport(layout.pos.row = 1, layout.pos.col=1))
+# print(fig1b, vp = viewport(layout.pos.row = 1, layout.pos.col=2))	
+# 
+# dev.off()
 
 
 ######################################################
@@ -277,7 +287,7 @@ cc.vpdmax.stack$Year <- as.numeric(row.names(cc.tmean.data))
 summary(cc.vpdmax.stack)
 
 cc.climate.stack <- rbind(cc.tmean.stack, cc.precip.stack, cc.vpdmax.stack)
-
+summary(cc.climate.stack)
 # sorting out sites so that they go from north at the top to south at the bottom
 cc.climate.stack$Site.Code <- factor(cc.climate.stack$Site.Code, levels = c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
 
@@ -311,9 +321,9 @@ fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free"
         panel.grid.minor=element_blank(), 
         panel.border=element_blank(),  
         panel.background=element_blank(), 
-        axis.text.x=element_text(angle=0, color="black", size=16, vjust= 0.5), 
-        axis.text.y=element_text(angle=0, color="black", size=16), 
-        strip.text=element_text(face="bold", size=22),
+        axis.text.x=element_text(angle=0, color="black", size=12, vjust= 0.5), 
+        axis.text.y=element_text(angle=0, color="black", size=8), 
+        strip.text=element_text(face="bold", size=14),
         axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
         legend.position="none") +
@@ -321,18 +331,24 @@ fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free"
   #legend.text = element_text(size=22),
   #legend.key = element_rect(fill = "white")) + 
   #guides(fill=guide_legend(nrow=1, title="")) +
-  theme(axis.title.y= element_text(size=24, face="bold")) +
-  theme(axis.title.x= element_text(size=24, face="bold")) +
+  theme(axis.title.y= element_text(size=14, face="bold")) +
+  theme(axis.title.x= element_text(size=14, face="bold")) +
   theme(panel.spacing.x = unit(1.25,"lines"),
         panel.spacing.y = unit(1.75,"lines"))
 
 
 # Looking at precip and temp data for the overall domain
-ggplot(data  = data.use) +
-  geom_point(aes(x=tmean, y = precip)) +
-  stat_smooth(aes(x=tmean, y=precip), method="lm")
+# ggplot(data  = data.use) +
+#   geom_point(aes(x=tmean, y = precip)) +
+#   stat_smooth(aes(x=tmean, y=precip), method="lm")
+# 
 
-
-png("figures/pub_figs/SupplementalFigure_1.png", width=13, height=13, units="in", res=300)
+png(file.path(dir.figs, "SupplementalFigure02.png"), width=180, height=180, unit="mm", res=600)
 fig2
 dev.off()
+
+
+pdf(file.path(dir.figs, "SupplementalFigure02.pdf"), width=180/25.4, height=180/25.4)
+fig2
+dev.off()
+ 

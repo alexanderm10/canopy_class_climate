@@ -16,10 +16,9 @@ summary(pred.out)
 
 
 # -----------------
-# Grphing size effects
+# Graphing size effects
 # -----------------
-png(file.path(dir.figs, "SupplementalFigure17_SiteModels_SizeEffect.png"), height=8, width=6, unit="in", res=120)
-ggplot(data=pred.out[pred.out$Effect=="dbh.recon",]) +
+site.size <- ggplot(data=pred.out[pred.out$Effect=="dbh.recon",]) +
   # ggtitle("Null Model") +
   facet_grid(Species~.) +
   geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Site.Code), alpha=0.5) +
@@ -36,29 +35,36 @@ ggplot(data=pred.out[pred.out$Effect=="dbh.recon",]) +
         panel.grid.minor=element_blank(), 
         panel.border=element_blank(),  
         panel.background=element_rect(fill=NA, color="black"), 
-        axis.text.x=element_text(angle=0, color="black", size=18), 
-        axis.text.y=element_text(angle=0, color="black", size=18), 
-        strip.text=element_text(face="bold", size=18),
+        axis.text.x=element_text(angle=0, color="black", size=10), 
+        axis.text.y=element_text(angle=0, color="black", size=8), 
+        strip.text=element_text(face="bold", size=10),
         axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
         legend.position="top",
-        legend.key.size = unit(0.75, "cm"),
-        legend.text = element_text(size=18),
-        legend.title=element_text(size=18, face="bold"),
+        legend.key.size = unit(0.33, "cm"),
+        legend.text = element_text(size=8),
+        legend.title=element_text(size=8, face="bold"),
         legend.key = element_rect(fill = "white")) + 
   # guides(color="Site Code", fill="Site Code")+
-  theme(axis.title.x = element_text(size=22, face="bold"),
-        axis.title.y= element_text(size=22, face="bold"))+
-  theme(panel.spacing.x = unit(1.25,"lines"),
-        panel.spacing.y = unit(1.25,"lines"))
+  theme(axis.title.x = element_text(size=12, face="bold"),
+        axis.title.y= element_text(size=12, face="bold"))+
+  theme(panel.spacing.x = unit(1.0,"lines"),
+        panel.spacing.y = unit(1.0,"lines"))
+
+png(file.path(dir.figs, "SupplementalFigure17_SiteModels_SizeEffect.png"), height=90, width=80, unit="mm", res=600)
+site.size
 dev.off()
+
+pdf(file.path(dir.figs, "SupplementalFigure17_SiteModels_SizeEffect.pdf"), height=90/25.4, width=80/25.4)
+site.size
+dev.off()
+
 # -----------------
 
 # -----------------
 # Plot-based year effects
 # -----------------
-png(file.path(dir.figs, "SupplementalFigure18_SiteModels_YearEffect.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=pred.out[pred.out$Effect=="Year",]) +
+site.year <- ggplot(data=pred.out[pred.out$Effect=="Year",]) +
   # ggtitle("Null Model") +
   facet_wrap(~PlotID, scales="free_y") +
   geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Site.Code), alpha=0.5) +
@@ -73,8 +79,8 @@ ggplot(data=pred.out[pred.out$Effect=="Year",]) +
         panel.grid.minor=element_blank(), 
         panel.border=element_blank(),  
         panel.background=element_rect(fill=NA, color="black"), 
-        axis.text.x=element_text(angle=0, color="black", size=10), 
         axis.text.y=element_text(angle=0, color="black", size=10), 
+        axis.text.x=element_text(angle=-45, hjust=0, color="black", size=10), 
         strip.text=element_text(face="bold", size=10),
         axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
@@ -87,25 +93,54 @@ ggplot(data=pred.out[pred.out$Effect=="Year",]) +
         axis.title.y= element_text(size=12, face="bold"))+
   theme(panel.spacing.x = unit(0.5,"lines"),
         panel.spacing.y = unit(0.5,"lines"))
+
+png(file.path(dir.figs, "SupplementalFigure18_SiteModels_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+site.year
 dev.off()
+
+pdf(file.path(dir.figs, "SupplementalFigure18_SiteModels_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+site.year
+dev.off()
+
 # -----------------
 
 # -----------------
 # Climate effects
 # -----------------
-png(file.path(dir.figs, "SupplementalFigure19_SiteModels_ClimateEffect_TSCA.png"), height=8, width=8, unit="in", res=120)
+png(file.path(dir.figs, "SupplementalFigure19_SiteModels_ClimateEffect_TSCA.png"), height=180, width=180, unit="mm", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="TSCA",], canopy=T, species=F)
 dev.off()
 
-png(file.path(dir.figs, "SupplementalFigure20_SiteModels_ClimateEffect_FAGR.png"), height=8, width=8, unit="in", res=120)
+pdf(file.path(dir.figs, "SupplementalFigure19_SiteModels_ClimateEffect_TSCA.pdf"), height=180/25.4, width=180/25.4)
+plot.climate.site(dat.plot=pred.out[pred.out$Species=="TSCA",], canopy=T, species=F)
+dev.off()
+
+
+png(file.path(dir.figs, "SupplementalFigure20_SiteModels_ClimateEffect_FAGR.png"), height=180, width=180, unit="mm", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="FAGR",], canopy=T, species=F)
 dev.off()
 
-png(file.path(dir.figs, "SupplementalFigure21_SiteModels_ClimateEffect_ACRU.png"), height=8, width=8, unit="in", res=120)
+pdf(file.path(dir.figs, "SupplementalFigure20_SiteModels_ClimateEffect_FAGR.pdf"), height=180/25.4, width=180/25.4)
+plot.climate.site(dat.plot=pred.out[pred.out$Species=="FAGR",], canopy=T, species=F)
+dev.off()
+
+
+png(file.path(dir.figs, "SupplementalFigure21_SiteModels_ClimateEffect_ACRU.png"), height=180, width=180, unit="mm", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="ACRU",], canopy=T, species=F)
 dev.off()
 
-png(file.path(dir.figs, "SupplementalFigure22_SiteModels_ClimateEffect_QURU.png"), height=8, width=8, unit="in", res=120)
+pdf(file.path(dir.figs, "SupplementalFigure21_SiteModels_ClimateEffect_ACRU.pdf"), height=180/25.4, width=180/25.4)
+plot.climate.site(dat.plot=pred.out[pred.out$Species=="ACRU",], canopy=T, species=F)
+dev.off()
+
+
+
+png(file.path(dir.figs, "SupplementalFigure22_SiteModels_ClimateEffect_QURU.png"), height=180, width=180, unit="mm", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="QURU",], canopy=T, species=F)
 dev.off()
+
+pdf(file.path(dir.figs, "SupplementalFigure22_SiteModels_ClimateEffect_QURU.pdf"), height=180/25.4, width=180/25.4)
+plot.climate.site(dat.plot=pred.out[pred.out$Species=="QURU",], canopy=T, species=F)
+dev.off()
+
 # -----------------

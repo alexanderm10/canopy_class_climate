@@ -17,18 +17,18 @@ plot.size <- function(dat.plot){
           panel.grid.minor=element_blank(), 
           panel.border=element_blank(),  
           panel.background=element_rect(fill=NA, color="black"), 
-          axis.text.x=element_text(angle=0, color="black", size=18), 
-          axis.text.y=element_text(angle=0, color="black", size=18), 
-          strip.text=element_text(face="bold", size=18),
+          axis.text.x=element_text(angle=0, color="black", size=10), 
+          axis.text.y=element_text(angle=0, color="black", size=10), 
+          strip.text=element_text(face="bold", size=12),
           axis.line.x = element_line(color="black", size = 0.5),
           axis.line.y = element_line(color="black", size = 0.5),
           legend.position="top",
           legend.key.size = unit(0.75, "cm"),
-          legend.text = element_text(size=18),
+          legend.text = element_text(size=10),
           legend.key = element_rect(fill = "white")) + 
     #guides(color=guide_legend(nrow=1),)+
-    theme(axis.title.x = element_text(size=22, face="bold"),
-          axis.title.y= element_text(size=22, face="bold"))+
+    theme(axis.title.x = element_text(size=12, face="bold"),
+          axis.title.y= element_text(size=12, face="bold"))+
     theme(panel.spacing.x = unit(1.25,"lines"),
           panel.spacing.y = unit(1.25,"lines"))
 }
@@ -48,7 +48,7 @@ plot.year <- function(dat.plot){
           panel.grid.minor=element_blank(), 
           panel.border=element_blank(),  
           panel.background=element_rect(fill=NA, color="black"), 
-          axis.text.x=element_text(angle=0, color="black", size=10), 
+          axis.text.x=element_text(angle=-45, hjust=0, color="black", size=10), 
           axis.text.y=element_text(angle=0, color="black", size=10), 
           strip.text=element_text(face="bold", size=10),
           axis.line.x = element_line(color="black", size = 0.5),
