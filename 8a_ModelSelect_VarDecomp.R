@@ -70,7 +70,7 @@ summary(data.use)
 #    - full = null + (base clim)*species + (base clim)*canopy
 # --------------------------------
 mod.comp <- data.frame(Model=c("null", "climate.base", "climate.spp", "climate.cc", "climate.spp.cc", "full"),
-                       r.sq=NA, dev.expl=NA, AIC=NA)
+                       r.sq=NA, dev.expl=NA, AIC=NA, RMSE=NA)
 
 # ----------
 # Null Model: No climatic effects
@@ -83,9 +83,15 @@ gam.null <- gam(log(BA.inc)~ s(dbh.recon, k=3, by=Species) +
 mod.comp[mod.comp$Model=="null", "r.sq"] <- summary(gam.null)$r.sq # R-squared
 mod.comp[mod.comp$Model=="null", "dev.expl"] <- summary(gam.null)$dev.expl # explained deviance
 mod.comp[mod.comp$Model=="null", "AIC"] <- AIC(gam.null)
+
+pred.null <- predict(gam.null, data.use)
+mod.comp[mod.comp$Model=="null", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.null)^2))
 # anova(gam.null) 
 
 save(gam.null, file=file.path(dir.out, "gam_null.Rdata"))
+
+# Loading to calculate RMSE
+# load(file.path(dir.out, "gam_null.Rdata"))
 # ----------
 
 # ----------
@@ -103,6 +109,10 @@ gam.clim.base <- gam(log(BA.inc)~
 mod.comp[mod.comp$Model=="climate.base", "r.sq"] <- summary(gam.clim.base)$r.sq # R-squared
 mod.comp[mod.comp$Model=="climate.base", "dev.expl"] <- summary(gam.clim.base)$dev.expl # explained deviance
 mod.comp[mod.comp$Model=="climate.base", "AIC"] <- AIC(gam.clim.base)
+
+pred.comp <- predict(gam.clim.base, data.use)
+mod.comp[mod.comp$Model=="climate.base", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.comp)^2))
+
 # anova(gam.clim.base) 
 
 save(gam.clim.base, file=file.path(dir.out, "gam_clim_base.Rdata"))
@@ -123,6 +133,9 @@ gam.clim.spp <- gam(log(BA.inc)~
 mod.comp[mod.comp$Model=="climate.spp", "r.sq"] <- summary(gam.clim.spp)$r.sq # R-squared
 mod.comp[mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
 mod.comp[mod.comp$Model=="climate.spp", "AIC"] <- AIC(gam.clim.spp)
+
+pred.spp <- predict(gam.clim.spp, data.use)
+mod.comp[mod.comp$Model=="climate.spp", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.spp)^2))
 # anova(gam.clim.spp) 
 
 save(gam.clim.spp, file=file.path(dir.out, "gam_clim_spp.Rdata"))
@@ -144,6 +157,10 @@ mod.comp[mod.comp$Model=="climate.cc", "r.sq"] <- summary(gam.clim.cc)$r.sq # R-
 mod.comp[mod.comp$Model=="climate.cc", "dev.expl"] <- summary(gam.clim.cc)$dev.expl # explained deviance
 mod.comp[mod.comp$Model=="climate.cc", "AIC"] <- AIC(gam.clim.cc)
 # anova(gam.clim.cc) 
+
+pred.cc <- predict(gam.clim.cc, data.use)
+mod.comp[mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.cc)^2))
+
 save(gam.clim.cc, file=file.path(dir.out, "gam_clim_cc.Rdata"))
 # ----------
 
@@ -162,7 +179,12 @@ gam.clim.spp.cc <- gam(log(BA.inc)~
 mod.comp[mod.comp$Model=="climate.spp.cc", "r.sq"] <- summary(gam.clim.spp.cc)$r.sq # R-squared
 mod.comp[mod.comp$Model=="climate.spp.cc", "dev.expl"] <- summary(gam.clim.spp.cc)$dev.expl # explained deviance
 mod.comp[mod.comp$Model=="climate.spp.cc", "AIC"] <- AIC(gam.clim.spp.cc)
+
+pred.spp.cc <- predict(gam.clim.spp.cc, data.use)
+mod.comp[mod.comp$Model=="climate.spp.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.spp.cc)^2))
+
 # anova(gam.clim.spp.cc) 
+
 save(gam.clim.spp.cc, file=file.path(dir.out, "gam_clim_spp.cc.Rdata"))
 # ----------
 
@@ -184,11 +206,21 @@ gam.all.var <- gam(log(BA.inc)~
 mod.comp[mod.comp$Model=="full", "r.sq"] <- summary(gam.all.var)$r.sq # R-squared
 mod.comp[mod.comp$Model=="full", "dev.expl"] <- summary(gam.all.var)$dev.expl # explained deviance
 mod.comp[mod.comp$Model=="full", "AIC"] <- AIC(gam.all.var)
+
+pred.full <- predict(gam.all.var, data.use)
+mod.comp[mod.comp$Model=="full", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.full)^2))
+
 # anova(gam.all.var) 
 
 save(gam.all.var, file=file.path(dir.out, "gam_all_variables.Rdata"))
 # ----------
 
+# Save Table 2
+mod.comp
+mod.comp$r.sq <- round(mod.comp$r.sq, 3)
+mod.comp$dev.expl <- round(mod.comp$dev.expl, 3)
+mod.comp$AIC <- round(mod.comp$AIC, 0)
+mod.comp$RMSE <- round(mod.comp$RMSE, 3)
 
 write.csv(mod.comp, file.path(dir.out, "ModComparison_Full.csv"), row.names=F)
 # --------------------------------
