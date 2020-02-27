@@ -400,15 +400,23 @@ dev.off()
 # Getting numbers for the manuscript
 summary(deriv.clim.spp)
 
-# "The two northern-distributed and late-successional species Tsuga canadensis and Fagus grandifolia have reduced growth at warmer temperatures and increased growth with high precipitation"
-mean(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="TSCA" & deriv.clim.spp$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="TSCA" & deriv.clim.spp$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T)
 
-mean(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="FAGR" & deriv.clim.spp$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="FAGR" & deriv.clim.spp$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T)
-
-
+# "The two northern-distributed and late-successional species Tsuga canadensis and Fagus grandifolia increased growth with high precipitation (0.03 ± 0.01 and 0.05 ± 0.01 %BAI/mm)."
 mean(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="TSCA" & deriv.clim.spp$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="TSCA" & deriv.clim.spp$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T)
 
 mean(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="FAGR" & deriv.clim.spp$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="FAGR" & deriv.clim.spp$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T)
+
+
+
+# "Both species also so overall reduced growth at warmer temperatures, with Tsuga canadensis sensitive to temperatures below 16.3˚C (-7.88 ± 2.18) and Fagus grandifolia showing a mean sensitivity of -4.26 ± 1.97 %BAI/˚C across the full temperature range. "
+summary(deriv.clim.spp$ci[deriv.clim.spp$ci$Species=="TSCA" & deriv.clim.spp$ci$var=="tmean" & !is.na(deriv.clim.spp$ci$sig),"tmean"])
+
+mean(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="TSCA" & deriv.clim.spp$ci$var=="tmean" & !is.na(deriv.clim.spp$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="TSCA" & deriv.clim.spp$ci$var=="tmean" & !is.na(deriv.clim.spp$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T)
+
+summary(deriv.clim.spp$ci[deriv.clim.spp$ci$Species=="FAGR" & deriv.clim.spp$ci$var=="tmean" & !is.na(deriv.clim.spp$ci$sig),"tmean"])
+
+mean(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="FAGR" & deriv.clim.spp$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.clim.spp$sims[deriv.clim.spp$ci$Species=="FAGR" & deriv.clim.spp$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T)
+
 
 
 
