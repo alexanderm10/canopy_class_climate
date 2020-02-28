@@ -15,8 +15,9 @@ library(car)
 dir.out <- "processed_data/gam_results_VarDecomp"
 dir.create(dir.out, recursive=T, showWarnings = F)
 
-path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Revisions_Round2/"
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 1 2019-12/"
 dir.figs <- file.path(path.google, "figures")
+dir.create(dir.figs, recursive = T)
 
 source("0_GraphEffects.R")
 source("0_Calculate_GAMM_Posteriors_Updated.R")
@@ -70,11 +71,9 @@ summary(data.use)
 # --------------------------------
 # A few quick hard-coded summaries
 # --------------------------------
-model.comp <- data.frame(model=c("null", "naive", "species", "canopy", "pseudo-interactive", "hypothesis"),
-                         r.sq=c(0.51652773, 0.51726366, 0.5189644, 0.51925246, 0.52141863, 0.520642),
-                         dev.exp=c(0.52169541, 0.52245135, 0.52419545, 0.52446041, 0.5267846, 0.52588095),
-                         AIC=c(321944.229, 321786.535, 321420.584, 321351.746, 320906.377, 321050.653)
-                         )
+model.comp <- read.csv(file.path(dir.out, "ModComparison_Full.csv"))
+model.comp$Description <- c("null", "naive", "species", "canopy", "pseudo-interactive", "hypothesis")
+
 mean(model.comp$dev.exp); sd(model.comp$dev.exp)
 round(range(model.comp$dev.exp), 3)
 # --------------------------------
@@ -145,20 +144,20 @@ for(SITE in unique(null.out$Site.Code)){
 
 summary(null.out[null.out$Effect=="dbh.recon" & null.out$PlotID==null.out$PlotID[1],])
 
-png(file.path(dir.figs, "SupplementalFigure03_0Null_SizeEffects.png"), height=90, width=80, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure03_0Null_SizeEffects.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(dat.plot= null.out[null.out$PlotID==null.out$PlotID[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure03_0Null_SizeEffects.pdf"), height=90/25.4, width=80/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure03_0Null_SizeEffects.pdf"), height=4.5, width=3)
 plot.size(dat.plot= null.out[null.out$PlotID==null.out$PlotID[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure04_0Null_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure04_0Null_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(dat.plot= null.out[null.out$Species==null.out$Species[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure04_0Null_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure04_0Null_YearEffect.pdf"), height=6, width=6)
 plot.year(dat.plot= null.out[null.out$Species==null.out$Species[1],])
 dev.off()
 # ----------
@@ -235,28 +234,28 @@ for(SITE in unique(dat.clim.base$Site.Code)){
 }
 
 
-png(file.path(dir.figs, "SupplementalFigure05_NaiveClim_SizeEffect.png"), height=90, width=80, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure05_NaiveClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(dat.plot = clim.base.out[clim.base.out$PlotID==clim.base.out$PlotID[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure05_NaiveClim_SizeEffect.pdf"), height=90/25.4, width=80/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure05_NaiveClim_SizeEffect.pdf"), height=4.5, width=3)
 plot.size(dat.plot = clim.base.out[clim.base.out$PlotID==clim.base.out$PlotID[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure06_NaiveClim_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure06_NaiveClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(dat.plot=clim.base.out[clim.base.out$Species==clim.base.out$Species[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure06_NaiveClim_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure06_NaiveClim_YearEffect.pdf"), height=6, width=6)
 plot.year(dat.plot=clim.base.out[clim.base.out$Species==clim.base.out$Species[1],])
 dev.off()
 
-png(file.path(dir.figs, "SupplementalFigure07_NaiveClim_ClimateEffects.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure07_NaiveClim_ClimateEffects.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate(dat.plot=clim.base.out[clim.base.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.base.out$PlotID==clim.base.out$PlotID[1] & clim.base.out$Species==clim.base.out$Species[1],], canopy=F, species=F)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure07_NaiveClim_ClimateEffects.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure07_NaiveClim_ClimateEffects.pdf"), height=6, width=6)
 plot.climate(dat.plot=clim.base.out[clim.base.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.base.out$PlotID==clim.base.out$PlotID[1] & clim.base.out$Species==clim.base.out$Species[1],], canopy=F, species=F)
 dev.off()
 
@@ -371,29 +370,29 @@ for(CC in unique(clim.spp.out$Species)){
 summary(clim.spp.out)
 summary(deriv.clim.spp$ci)
 
-png(file.path(dir.figs, "SupplementalFigure08_SppClim_SizeEffect.png"), height=90, width=80, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure08_SppClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(dat.plot=clim.spp.out[ clim.spp.out$PlotID==clim.spp.out$PlotID[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure08_SppClim_SizeEffect.pdf"), height=90/25.4, width=80/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure08_SppClim_SizeEffect.pdf"), height=4.5, width=3)
 plot.size(dat.plot=clim.spp.out[ clim.spp.out$PlotID==clim.spp.out$PlotID[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure09_SppClim_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure09_SppClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(dat.plot=clim.spp.out[ clim.spp.out$Species==clim.spp.out$Species[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure09_SppClim_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure09_SppClim_YearEffect.pdf"), height=6, width=6)
 plot.year(dat.plot=clim.spp.out[ clim.spp.out$Species==clim.spp.out$Species[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "Figure2_SppClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "Figure2_SppClim_ClimateEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate(dat.plot=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", "vpd.max")  & clim.spp.out$PlotID==clim.spp.out$PlotID[1],], canopy=F, species=T)
 dev.off()
 
-pdf(file.path(dir.figs, "Figure2_SppClim_ClimateEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "Figure2_SppClim_ClimateEffect.pdf"), height=6, width=6)
 plot.climate(dat.plot=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", "vpd.max")  & clim.spp.out$PlotID==clim.spp.out$PlotID[1],], canopy=F, species=T)
 dev.off()
 
@@ -550,29 +549,29 @@ clim.cc.out$Canopy.Class <- factor(clim.cc.out$Canopy.Class, levels= c("Overstor
 summary(clim.cc.out)
 summary(deriv.clim.cc)
 
-png(file.path(dir.figs, "SupplementalFigure10_CanopyClim_SizeEffect.png"), height=90, width=80, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure10_CanopyClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(dat.plot=clim.cc.out[clim.cc.out$PlotID==clim.cc.out$PlotID[1] & clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure10_CanopyClim_SizeEffect.pdf"), height=90/25.4, width=80/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure10_CanopyClim_SizeEffect.pdf"), height=4.5, width=3)
 plot.size(dat.plot=clim.cc.out[clim.cc.out$PlotID==clim.cc.out$PlotID[1] & clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure11_CanopyClim_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure11_CanopyClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(dat.plot=clim.cc.out[clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1] & clim.cc.out$Species==clim.cc.out$Species[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure11_CanopyClim_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure11_CanopyClim_YearEffect.pdf"), height=6, width=6)
 plot.year(dat.plot=clim.cc.out[clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1] & clim.cc.out$Species==clim.cc.out$Species[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate(dat.plot=clim.cc.out[clim.cc.out$Species==clim.cc.out$Species[1] & clim.cc.out$PlotID==clim.cc.out$PlotID[1],], species=F, canopy=T)
 dev.off()
 
-pdf(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.pdf"), height=6, width=6)
 plot.climate(dat.plot=clim.cc.out[clim.cc.out$Species==clim.cc.out$Species[1] & clim.cc.out$PlotID==clim.cc.out$PlotID[1],], species=F, canopy=T)
 dev.off()
 
@@ -693,29 +692,29 @@ clim.spp.cc.out$Canopy.Class <- car::recode(clim.spp.cc.out$Canopy.Class, "'Cano
 clim.spp.cc.out$Canopy.Class <- factor(clim.spp.cc.out$Canopy.Class, levels= c("Overstory", "Middle", "Understory"))
 summary(clim.spp.cc.out)
 
-png(file.path(dir.figs, "SupplementalFigure12_Pseudo-InteractiveClim_SizeEffect.png"), height=90, width=80, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure12_Pseudo-InteractiveClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(dat.plot=clim.spp.cc.out[clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure12_Pseudo-InteractiveClim_SizeEffect.pdf"), height=90/25.4, width=80/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure12_Pseudo-InteractiveClim_SizeEffect.pdf"), height=4.5, width=3)
 plot.size(dat.plot=clim.spp.cc.out[clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure13_Pseudo-InteractiveClim_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure13_Pseudo-InteractiveClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(dat.plot=clim.spp.cc.out[clim.spp.cc.out$Canopy.Class==clim.spp.cc.out$Canopy.Class[1] & clim.spp.cc.out$Species==clim.spp.cc.out$Species[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure13_Pseudo-InteractiveClim_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure13_Pseudo-InteractiveClim_YearEffect.pdf"), height=6, width=6)
 plot.year(dat.plot=clim.spp.cc.out[clim.spp.cc.out$Canopy.Class==clim.spp.cc.out$Canopy.Class[1] & clim.spp.cc.out$Species==clim.spp.cc.out$Species[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure14_Pseudo-InteractiveClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure14_Pseudo-InteractiveClim_ClimateEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate(dat.plot=clim.spp.cc.out[clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],], species = T, canopy = T)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure14_Pseudo-InteractiveClim_ClimateEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure14_Pseudo-InteractiveClim_ClimateEffect.pdf"), height=6, width=6)
 plot.climate(dat.plot=clim.spp.cc.out[clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],], species = T, canopy = T)
 dev.off()
 
@@ -839,30 +838,30 @@ all.var.out$Canopy.Class <- factor(all.var.out$Canopy.Class, levels= c("Overstor
 summary(all.var.out)
 summary(deriv.all.var)
 
-png(file.path(dir.figs, "SupplementalFigure15_HypothesisClim_SizeEffect.png"), height=90, width=80, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure15_HypothesisClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(all.var.out[all.var.out$PlotID==all.var.out$PlotID[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure15_HypothesisClim_SizeEffect.pdf"), height=90/25.4, width=80/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure15_HypothesisClim_SizeEffect.pdf"), height=4.5, width=3)
 plot.size(all.var.out[all.var.out$PlotID==all.var.out$PlotID[1],])
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure16_HypothesisClim_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure16_HypothesisClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(all.var.out[all.var.out$Species==all.var.out$Species[1],])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure16_HypothesisClim_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure16_HypothesisClim_YearEffect.pdf"), height=6, width=6)
 plot.year(all.var.out[all.var.out$Species==all.var.out$Species[1],])
 dev.off()
 
 
 
-png(file.path(dir.figs, "Figure4_HypothesisClim_ClimateEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "Figure4_HypothesisClim_ClimateEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate(all.var.out[all.var.out$PlotID==all.var.out$PlotID[1],], canopy=T, species=T)
 dev.off()
 
-pdf(file.path(dir.figs, "Figure4_HypothesisClim_ClimateEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "Figure4_HypothesisClim_ClimateEffect.pdf"), height=6, width=6)
 plot.climate(all.var.out[all.var.out$PlotID==all.var.out$PlotID[1],], canopy=T, species=T)
 dev.off()
 

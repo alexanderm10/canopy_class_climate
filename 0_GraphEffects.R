@@ -11,7 +11,7 @@ plot.size <- function(dat.plot){
     geom_hline(yintercept=100, linetype="dashed") +
     scale_x_continuous(expand=c(0,0)) +
     coord_cartesian(ylim=c(0, 1750)) +
-    labs(x = expression(bold(paste("DBH (cm)"))), y = expression(bold(paste("Effect on BAI (%)"))))+
+    labs(x = expression(bold(paste("DBH (cm)"))), y = expression(bold(paste("Relativized BAI (%)"))))+
     theme(axis.line=element_line(color="black"), 
           panel.grid.major=element_blank(), 
           panel.grid.minor=element_blank(), 
@@ -29,8 +29,8 @@ plot.size <- function(dat.plot){
     #guides(color=guide_legend(nrow=1),)+
     theme(axis.title.x = element_text(size=12, face="bold"),
           axis.title.y= element_text(size=12, face="bold"))+
-    theme(panel.spacing.x = unit(1.25,"lines"),
-          panel.spacing.y = unit(1.25,"lines"))
+    theme(panel.spacing.x = unit(0.5,"lines"),
+          panel.spacing.y = unit(0.5,"lines"))
 }
 
 plot.year <- function(dat.plot){
@@ -42,7 +42,7 @@ plot.year <- function(dat.plot){
     geom_hline(yintercept=100, linetype="dashed") +
     scale_x_continuous(expand=c(0,0)) +
     # coord_cartesian(ylim=c(0, 1750)) +
-    labs(x = expression(bold(paste("Year"))), y = expression(bold(paste("Effect on BAI (%)")))) +
+    labs(x = expression(bold(paste("Year"))), y = expression(bold(paste("Relativized BAI (%)")))) +
     theme(axis.line=element_line(color="black"), 
           panel.grid.major=element_blank(), 
           panel.grid.minor=element_blank(), 
@@ -61,7 +61,8 @@ plot.year <- function(dat.plot){
     theme(axis.title.x = element_text(size=12, face="bold"),
           axis.title.y= element_text(size=12, face="bold"))+
     theme(panel.spacing.x = unit(0.5,"lines"),
-          panel.spacing.y = unit(0.5,"lines"))
+          panel.spacing.y = unit(0.5,"lines"),
+          plot.margin=unit(c(0.5, 2, 0.5, 0.5), "lines"))
 }
 
 
@@ -93,8 +94,8 @@ plot.climate <- function(dat.plot, canopy=F, species=F, ...){
     #guides(color=guide_legend(nrow=1),)+
     theme(axis.title.x = element_text(size=12, face="bold"),
           axis.title.y= element_text(size=12, face="bold")) +
-    theme(panel.spacing.x = unit(1,"lines"),
-          panel.spacing.y = unit(1,"lines"),
+    theme(panel.spacing.x = unit(0.5,"lines"),
+          panel.spacing.y = unit(0.5,"lines"),
           strip.text.x = element_blank(),
           plot.background = element_rect(fill=NA, color=NA))
   
@@ -118,7 +119,7 @@ plot.climate <- function(dat.plot, canopy=F, species=F, ...){
   }
   
   plot.tmean <- plot.base %+% subset(dat.plot, Effect=="tmean") + 
-    labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = expression(bold(paste("Effect on BAI (%)")))) +
+    labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = expression(bold(paste("Relativized BAI (%)")))) +
     guides(fill=F, color=F) +
     theme(strip.text.y = element_blank(),
           axis.text.x = element_text(margin=unit(c(1,1,1,1), "lines"), color="black", size=10),
@@ -200,7 +201,7 @@ plot.climate.site <- function(dat.plot, canopy=T, species=F, ...){
   }
   
   plot.tmean <- plot.base %+% subset(dat.plot, Effect=="tmean") + 
-    labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = expression(bold(paste("Effect on BAI (%)")))) +
+    labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = expression(bold(paste("Relativized BAI (%) (%)")))) +
     guides(fill=F, color=F) +
     theme(strip.text.y = element_blank(),
           axis.text.x = element_text(margin=unit(c(1,1,1,1), "lines"), color="black", size=10),

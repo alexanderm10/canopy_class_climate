@@ -3,9 +3,9 @@ library(ggplot2)
 source("0_GraphEffects.R")
 
 
-path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Revisions_Round2/"
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 1 2019-12/"
 dir.figs <- file.path(path.google, "figures")
-
+dir.create(dir.figs, recursive = T, showWarnings = F)
 
 pred.out <- read.csv("processed_data/gam_results_SiteSpecific/Post-Process_AllSites.csv")
 pred.out$Site.Code <- factor(pred.out$Site.Code, levels=c("GB", "RH", "HO", "GE", "LF", "HF", "NR", "PS"))
@@ -51,11 +51,11 @@ site.size <- ggplot(data=pred.out[pred.out$Effect=="dbh.recon",]) +
   theme(panel.spacing.x = unit(1.0,"lines"),
         panel.spacing.y = unit(1.0,"lines"))
 
-png(file.path(dir.figs, "SupplementalFigure17_SiteModels_SizeEffect.png"), height=90, width=80, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure17_SiteModels_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 site.size
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure17_SiteModels_SizeEffect.pdf"), height=90/25.4, width=80/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure17_SiteModels_SizeEffect.pdf"), height=4.5, width=3)
 site.size
 dev.off()
 
@@ -94,11 +94,11 @@ site.year <- ggplot(data=pred.out[pred.out$Effect=="Year",]) +
   theme(panel.spacing.x = unit(0.5,"lines"),
         panel.spacing.y = unit(0.5,"lines"))
 
-png(file.path(dir.figs, "SupplementalFigure18_SiteModels_YearEffect.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure18_SiteModels_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 site.year
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure18_SiteModels_YearEffect.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure18_SiteModels_YearEffect.pdf"), height=6, width=6)
 site.year
 dev.off()
 
@@ -107,39 +107,39 @@ dev.off()
 # -----------------
 # Climate effects
 # -----------------
-png(file.path(dir.figs, "SupplementalFigure19_SiteModels_ClimateEffect_TSCA.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure19_SiteModels_ClimateEffect_TSCA.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="TSCA",], canopy=T, species=F)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure19_SiteModels_ClimateEffect_TSCA.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure19_SiteModels_ClimateEffect_TSCA.pdf"), height=6, width=6)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="TSCA",], canopy=T, species=F)
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure20_SiteModels_ClimateEffect_FAGR.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure20_SiteModels_ClimateEffect_FAGR.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="FAGR",], canopy=T, species=F)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure20_SiteModels_ClimateEffect_FAGR.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure20_SiteModels_ClimateEffect_FAGR.pdf"), height=6, width=6)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="FAGR",], canopy=T, species=F)
 dev.off()
 
 
-png(file.path(dir.figs, "SupplementalFigure21_SiteModels_ClimateEffect_ACRU.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure21_SiteModels_ClimateEffect_ACRU.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="ACRU",], canopy=T, species=F)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure21_SiteModels_ClimateEffect_ACRU.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure21_SiteModels_ClimateEffect_ACRU.pdf"), height=6, width=6)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="ACRU",], canopy=T, species=F)
 dev.off()
 
 
 
-png(file.path(dir.figs, "SupplementalFigure22_SiteModels_ClimateEffect_QURU.png"), height=180, width=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure22_SiteModels_ClimateEffect_QURU.tiff"), height=6, width=6, unit="in", res=600)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="QURU",], canopy=T, species=F)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure22_SiteModels_ClimateEffect_QURU.pdf"), height=180/25.4, width=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure22_SiteModels_ClimateEffect_QURU.pdf"), height=6, width=6)
 plot.climate.site(dat.plot=pred.out[pred.out$Species=="QURU",], canopy=T, species=F)
 dev.off()
 

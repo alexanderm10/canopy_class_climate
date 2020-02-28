@@ -3,8 +3,9 @@ library(car)
 library(gridExtra)
 library(grid)
 
-path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Revisions_Round2/"
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 1 2019-12"
 dir.figs <- file.path(path.google, "figures")
+dir.create(dir.figs, recursive = T, showWarnings = F)
 
 #################################################
 # Figure 1
@@ -50,6 +51,7 @@ cc.tree.data2$Species <- factor(cc.tree.data2$Species, levels=c("TSCA", "FAGR", 
 cc.tree.data2 <- cc.tree.data2[!cc.tree.data2$TreeID=="LF2029",]
 
 write.csv(cc.tree.data2, "processed_data/canopy_class_tree_data.csv", row.names=F)
+
 for(i in unique(cc.tree.data$Site)){
   
   print(ggplot(data=cc.tree.data[cc.tree.data$Site==i,]) +
@@ -100,29 +102,29 @@ ggplot(data=cc.tree.data2) + facet_wrap(~Site) +
 dev.off()
 
 
-fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + facet_grid(Species~.) +
+fig1b <- ggplot(data=cc.tree.data2[cc.tree.data2$Site %in% "All",]) + 
+  facet_grid(Species~.) +
   geom_histogram(aes(x=DBH, fill=Canopy.Class), binwidth = 5) +
   labs(x="DBH (cm)", y="Count") +
   scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"), guide = guide_legend(title = "")) +
+  scale_y_continuous(expand=c(0,0), limits=c(0,87), breaks=seq(0, 75, by=25)) +
   theme(axis.line=element_line(color="black"), 
         panel.grid.major=element_blank(), 
         panel.grid.minor=element_blank(), 
         panel.border=element_blank(),  
         panel.background=element_blank(), 
-        axis.text.x=element_text(angle=0, color="black", size=8, vjust= 0.5), 
-        axis.text.y=element_text(angle=0, color="black", size=8), 
+        axis.text.x=element_text(angle=0, color="black", size=10, vjust= 0.5), 
+        axis.text.y=element_text(angle=0, color="black", size=10), 
         strip.text=element_text(face="bold", size=10),
         axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5),
         legend.position="top",
-        legend.text = element_text(size=12)) +
-  #legend.key.size = unit(0.75, "cm"),
-  #legend.text = element_text(size=22),
-  #legend.key = element_rect(fill = "white")) + 
-  #guides(fill=guide_legend(nrow=1, title="")) +
+        legend.text = element_text(size=10),
+        legend.key.size = unit(0.75, "lines")) +
   theme(axis.title.y= element_text(size=12, face="bold")) +
   theme(axis.title.x= element_text(size=12, face="bold")) +
-  theme(panel.spacing.y = unit(1,"lines"))
+  theme(panel.spacing.y = unit(0.25,"lines"),
+        plot.margin = unit(c(1, 0.5, 0.5, 1), "lines"))
 
 pdf("figures/Fig1b.pdf ", width= 13, height = 8.5)
 fig1b
@@ -203,13 +205,14 @@ fig1a <- ggplot(data=dat.map) +
   # scale_color_manual(values="red", name="Data Type") +
   theme_bw() +
   theme(legend.position="none",
-        axis.text.x=element_text(angle=0, color="black", size=10, vjust= 0.5), 
-        axis.text.y=element_text(angle=0, color="black", size=10)) +
+        axis.text.x=element_text(angle=0, color="black", size=8, vjust= 0.5), 
+        axis.text.y=element_text(angle=0, color="black", size=8)) +
   scale_x_continuous(expand=c(0,0), name="Degrees Longitude", limits =c(lon.min - 0.25,lon.max +2.25)) +
   scale_y_continuous(expand=c(0,0), name="Degrees Latitude", limits= c(lat.min - 1,lat.max + 1)) +
   coord_equal() +
-  theme(axis.title.y= element_text(size=12, face="bold")) +
-  theme(axis.title.x= element_text(size=12, face="bold"))
+  theme(axis.title.y= element_text(size=10, face="bold"),
+        axis.title.x= element_text(size=10, face="bold"),
+        plot.margin = unit(c(1, 0.5, 0.5, 1), "lines"))
 
 png("figures/fig1a.png", width= 13, height = 8.5, unit="in", res = 300)
 fig1a
@@ -224,12 +227,12 @@ dev.off()
 # dev.off()
 
 library(cowplot)
-png(file=file.path(dir.figs, "Figure1.png"), width=180, height=90, res=600, unit="mm")
-cowplot::plot_grid(fig1a, fig1b, align = c("v","h"), nrow = 1, rel_widths = c(0.4, 0.5), labels = c("A)", "B)"))
+tiff(file=file.path(dir.figs, "Figure1.tiff"), width=3, height=6, res=600, unit="in")
+cowplot::plot_grid(fig1a, fig1b, align = c("h"), ncol = 1, rel_heights=c(0.75, 1), labels = c("A)", "B)"))
 dev.off()
 
-pdf(file=file.path(dir.figs, "Figure1.pdf"), width=180/25.4, height=90/25.4)
-cowplot::plot_grid(fig1a, fig1b, align = c("v","h"), nrow = 1, rel_widths = c(0.4, 0.5), labels = c("A)", "B)"))
+pdf(file=file.path(dir.figs, "Figure1.pdf"), width=3, height=6)
+cowplot::plot_grid(fig1a, fig1b, align = c("h"), ncol = 1, rel_heights=c(0.75, 1), labels = c("A)", "B)"))
 dev.off()
 
 
@@ -310,12 +313,11 @@ avg.climate.stack$Site.Code <- avg.climate$Site.Code
 
 fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free") +
   geom_density(aes(x=climate.var, y = ..scaled.., fill=type, color=type), alpha=0.4) +
-  geom_vline(data= avg.climate.stack, aes(xintercept=mean.values, color=type)) +        
-  # scale_fill_manual(values=site.palette, guide = guide_legend(title = "Site")) +
-  #         scale_color_manual(values=site.palette, guide = guide_legend(title = "Site")) +
+  geom_vline(data= avg.climate.stack, aes(xintercept=mean.values, color=type)) +    
+  scale_y_continuous(limits=c(0, 1), expand=c(0,0), breaks=c(0, 0.5, 1)) +
   scale_fill_manual(values = c("#D55E00", "#0072B2", "#009E73"), guide = guide_legend(title="Clim. Var.")) +
   scale_color_manual(values = c("#D55E00", "#0072B2", "#009E73"), guide = guide_legend(title="Clim. Var.")) +
-  labs(x = expression(bold(paste("Temperature ("^"o", "C)"))), y = "Scaled") +
+  labs(x = "Growing Season Conditions", y = "Scaled") +
   theme(axis.line=element_line(color="black"), 
         panel.grid.major=element_blank(), 
         panel.grid.minor=element_blank(), 
@@ -333,8 +335,8 @@ fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free"
   #guides(fill=guide_legend(nrow=1, title="")) +
   theme(axis.title.y= element_text(size=14, face="bold")) +
   theme(axis.title.x= element_text(size=14, face="bold")) +
-  theme(panel.spacing.x = unit(1.25,"lines"),
-        panel.spacing.y = unit(1.75,"lines"))
+  theme(panel.spacing.x = unit(1,"lines"),
+        panel.spacing.y = unit(1,"lines"))
 
 
 # Looking at precip and temp data for the overall domain
@@ -343,12 +345,12 @@ fig2 <- ggplot(data=cc.climate.stack) + facet_grid(Site.Code~type, scales="free"
 #   stat_smooth(aes(x=tmean, y=precip), method="lm")
 # 
 
-png(file.path(dir.figs, "SupplementalFigure02.png"), width=180, height=180, unit="mm", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure02.tiff"), width=6, height=6, unit="in", res=600)
 fig2
 dev.off()
 
 
-pdf(file.path(dir.figs, "SupplementalFigure02.pdf"), width=180/25.4, height=180/25.4)
+pdf(file.path(dir.figs, "SupplementalFigure02.pdf"), width=6, height=6)
 fig2
 dev.off()
  
