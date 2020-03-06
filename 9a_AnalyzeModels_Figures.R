@@ -567,11 +567,11 @@ plot.year(dat.plot=clim.cc.out[clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Clas
 dev.off()
 
 
-tiff(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.tiff"), height=6, width=6, unit="in", res=600)
+tiff(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.tiff"), height=3, width=6, unit="in", res=600)
 plot.climate(dat.plot=clim.cc.out[clim.cc.out$Species==clim.cc.out$Species[1] & clim.cc.out$PlotID==clim.cc.out$PlotID[1],], species=F, canopy=T)
 dev.off()
 
-pdf(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.pdf"), height=6, width=6)
+pdf(file.path(dir.figs, "Figure3_CanopyClimate_ClimateEffect.pdf"), height=3, width=6)
 plot.climate(dat.plot=clim.cc.out[clim.cc.out$Species==clim.cc.out$Species[1] & clim.cc.out$PlotID==clim.cc.out$PlotID[1],], species=F, canopy=T)
 dev.off()
 
