@@ -10,7 +10,7 @@ plot.size <- function(dat.plot){
     geom_line(aes(x=x, y=mean.bai*100)) +
     geom_hline(yintercept=100, linetype="dashed") +
     scale_x_continuous(expand=c(0,0)) +
-    coord_cartesian(ylim=c(0, 1750)) +
+    # coord_cartesian(ylim=c(0, 1750)) +
     labs(x = expression(bold(paste("DBH (cm)"))), y = expression(bold(paste("Relativized BAI (%)"))))+
     theme(axis.line=element_line(color="black"), 
           panel.grid.major=element_blank(), 
@@ -37,8 +37,8 @@ plot.year <- function(dat.plot){
   ggplot(data=dat.plot[dat.plot$Effect=="Year",]) +
     # ggtitle("Null Model") +
     facet_wrap(~PlotID, scales="free_y") +
-    geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100), alpha=0.5) +
-    geom_line(aes(x=x, y=mean.bai*100)) +
+    geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Species), alpha=0.5) +
+    geom_line(aes(x=x, y=mean.bai*100, color=Species)) +
     geom_hline(yintercept=100, linetype="dashed") +
     scale_x_continuous(expand=c(0,0)) +
     # coord_cartesian(ylim=c(0, 1750)) +
@@ -74,6 +74,7 @@ plot.climate <- function(dat.plot, canopy=F, species=F, ...){
 
   plot.base <- ggplot(data=dat.plot[dat.plot$Effect%in%c("tmean", "precip", "vpd.max"),]) +
     # facet_grid(.~Effect) +
+    coord_cartesian(ylim=c(50, 200)) +
     geom_hline(yintercept=100, linetype="dashed") +
     scale_y_continuous(limits=c(min(dat.plot$lwr.bai[dat.plot$Effect %in% c("tmean", "precip", "vpd.max")]*100, na.rm=T), max(dat.plot$upr.bai[dat.plot$Effect %in% c("tmean", "precip", "vpd.max")]*100, na.rm=T))) +
     theme(axis.line=element_line(color="black"), 

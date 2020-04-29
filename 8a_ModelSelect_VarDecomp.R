@@ -69,12 +69,12 @@ summary(data.use)
 #    - spp.cc.clim = null + (base clim)*speciesxcanopy class
 #    - full = null + (base clim)*species + (base clim)*canopy
 # --------------------------------
-mod.comp <- data.frame(Model=rep(c("climate.spp", "climate.cc"), each=length(spp.use))
+mod.comp <- data.frame(Model=rep(c("climate.spp", "climate.cc"), each=length(spp.use)),
                        Species=rep(spp.use),
                        r.sq=NA, dev.expl=NA, AIC=NA, RMSE=NA)
 
 for(SPP in spp.use){
- 
+  print(paste("working on speices:", SPP) )
   gam.clim.spp <- gam(log(BA.inc)~
                          s(tmean, k=3) +
                          s(precip, k=3) +
@@ -85,25 +85,16 @@ for(SPP in spp.use){
                        random=list(Site=~1, PlotID=~1, TreeID=~1),
                        data=data.use[data.use$Species==SPP,])
   
-  # gam.clim.base <- gam(log(BA.inc)~
-  #                        s(tmean, k=3) +
-  #                        s(precip, k=3) +
-  #                        s(vpd.max, k=3) +
-  #                        s(dbh.recon, k=3, by=Species) +
-  #                        s(Year, k=4, by=PlotID)+
-  #                        Site.Code + PlotID  + TreeID + Canopy.Class + Species,
-  #                      # random=list(Site=~1, PlotID=~1, TreeID=~1),
-  #                      data=data.use)
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "r.sq"] <- summary(gam.clim.spp)$r.sq # R-squared
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "AIC"] <- AIC(gam.clim.spp)
   
-  pred.comp <- predict(gam.clim.spp, data.use)
-  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.comp)^2))
+  pred.comp <- predict(gam.clim.spp, data.use[data.use$Species==SPP,])
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "RMSE"] <- sqrt(mean((log(data.use$BA.inc[data.use$Species==SPP])-pred.comp)^2))
   
   # anova(gam.clim.base) 
   
-  save(gam.clim.base, file=file.path(dir.out, paste0("gam_clim_spp_", SPP, ".Rdata")))
+  save(gam.clim.spp, file=file.path(dir.out, paste0("gam_clim_spp_", SPP, ".Rdata")))
   # ----------
   
 
@@ -116,16 +107,16 @@ for(SPP in spp.use){
                         s(vpd.max, k=3, by=Canopy.Class) +
                         s(dbh.recon, k=3, by=Species) +
                         s(Year, k=4, by=PlotID)+
-                        Site.Code + PlotID  + TreeID + Canopy.Class + Species,
+                        Canopy.Class,
                       # random=list(Site=~1, PlotID=~1, TreeID=~1),
                       data=data.use[data.use$Species==SPP,])
-  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "r.sq"] <- summary(gam.clim.cc)$r.sq # R-squared
-  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "dev.expl"] <- summary(gam.clim.cc)$dev.expl # explained deviance
-  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "AIC"] <- AIC(gam.clim.cc)
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "r.sq"] <- summary(gam.clim.cc)$r.sq # R-squared
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "dev.expl"] <- summary(gam.clim.cc)$dev.expl # explained deviance
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "AIC"] <- AIC(gam.clim.cc)
   # anova(gam.clim.cc) 
   
-  pred.cc <- predict(gam.clim.cc, data.use)
-  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.cc)^2))
+  pred.cc <- predict(gam.clim.cc, data.use[data.use$Species==SPP,])
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc[data.use$Species==SPP])-pred.cc)^2))
   
   save(gam.clim.cc, file=file.path(dir.out, paste0("gam_clim_cc_", SPP, ".Rdata")))
   # ----------
