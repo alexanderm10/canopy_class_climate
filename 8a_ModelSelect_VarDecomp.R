@@ -69,150 +69,67 @@ summary(data.use)
 #    - spp.cc.clim = null + (base clim)*speciesxcanopy class
 #    - full = null + (base clim)*species + (base clim)*canopy
 # --------------------------------
-mod.comp <- data.frame(Model=c("null", "climate.base", "climate.spp", "climate.cc", "climate.spp.cc", "full"),
+mod.comp <- data.frame(Model=rep(c("climate.spp", "climate.cc"), each=length(spp.use))
+                       Species=rep(spp.use),
                        r.sq=NA, dev.expl=NA, AIC=NA, RMSE=NA)
 
-# ----------
-# Null Model: No climatic effects
-# ----------
-gam.null <- gam(log(BA.inc)~ s(dbh.recon, k=3, by=Species) +
-                  s(Year, k=4, by=PlotID)+
-                  Site.Code + PlotID  + TreeID + Canopy.Class + Species,
-                   # random=list(Site=~1, PlotID=~1, TreeID=~1),
-                  data=data.use)
-mod.comp[mod.comp$Model=="null", "r.sq"] <- summary(gam.null)$r.sq # R-squared
-mod.comp[mod.comp$Model=="null", "dev.expl"] <- summary(gam.null)$dev.expl # explained deviance
-mod.comp[mod.comp$Model=="null", "AIC"] <- AIC(gam.null)
+for(SPP in spp.use){
+ 
+  gam.clim.spp <- gam(log(BA.inc)~
+                         s(tmean, k=3) +
+                         s(precip, k=3) +
+                         s(vpd.max, k=3) +
+                         s(dbh.recon, k=3, by=Species) +
+                         s(Year, k=4, by=PlotID)+
+                         Canopy.Class,
+                       random=list(Site=~1, PlotID=~1, TreeID=~1),
+                       data=data.use[data.use$Species==SPP,])
+  
+  # gam.clim.base <- gam(log(BA.inc)~
+  #                        s(tmean, k=3) +
+  #                        s(precip, k=3) +
+  #                        s(vpd.max, k=3) +
+  #                        s(dbh.recon, k=3, by=Species) +
+  #                        s(Year, k=4, by=PlotID)+
+  #                        Site.Code + PlotID  + TreeID + Canopy.Class + Species,
+  #                      # random=list(Site=~1, PlotID=~1, TreeID=~1),
+  #                      data=data.use)
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "r.sq"] <- summary(gam.clim.spp)$r.sq # R-squared
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "AIC"] <- AIC(gam.clim.spp)
+  
+  pred.comp <- predict(gam.clim.spp, data.use)
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.comp)^2))
+  
+  # anova(gam.clim.base) 
+  
+  save(gam.clim.base, file=file.path(dir.out, paste0("gam_clim_spp_", SPP, ".Rdata")))
+  # ----------
+  
 
-pred.null <- predict(gam.null, data.use)
-mod.comp[mod.comp$Model=="null", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.null)^2))
-# anova(gam.null) 
-
-save(gam.null, file=file.path(dir.out, "gam_null.Rdata"))
-
-# Loading to calculate RMSE
-# load(file.path(dir.out, "gam_null.Rdata"))
-# ----------
-
-# ----------
-# Base Climate Model: No species/canopy-based climate effects
-# ----------
-gam.clim.base <- gam(log(BA.inc)~ 
-                       s(tmean, k=3) +
-                       s(precip, k=3) +
-                       s(vpd.max, k=3) +
-                       s(dbh.recon, k=3, by=Species) +
-                       s(Year, k=4, by=PlotID)+
-                       Site.Code + PlotID  + TreeID + Canopy.Class + Species,
-                     # random=list(Site=~1, PlotID=~1, TreeID=~1),
-                     data=data.use)
-mod.comp[mod.comp$Model=="climate.base", "r.sq"] <- summary(gam.clim.base)$r.sq # R-squared
-mod.comp[mod.comp$Model=="climate.base", "dev.expl"] <- summary(gam.clim.base)$dev.expl # explained deviance
-mod.comp[mod.comp$Model=="climate.base", "AIC"] <- AIC(gam.clim.base)
-
-pred.comp <- predict(gam.clim.base, data.use)
-mod.comp[mod.comp$Model=="climate.base", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.comp)^2))
-
-# anova(gam.clim.base) 
-
-save(gam.clim.base, file=file.path(dir.out, "gam_clim_base.Rdata"))
-# ----------
-
-# ----------
-# Species-based Climate Model
-# ----------
-gam.clim.spp <- gam(log(BA.inc)~ 
-                       s(tmean, k=3, by=Species) +
-                       s(precip, k=3, by=Species) +
-                       s(vpd.max, k=3, by=Species) +
-                       s(dbh.recon, k=3, by=Species) +
-                       s(Year, k=4, by=PlotID)+
-                       Site.Code + PlotID  + TreeID + Canopy.Class + Species,
-                     # random=list(Site=~1, PlotID=~1, TreeID=~1),
-                     data=data.use)
-mod.comp[mod.comp$Model=="climate.spp", "r.sq"] <- summary(gam.clim.spp)$r.sq # R-squared
-mod.comp[mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
-mod.comp[mod.comp$Model=="climate.spp", "AIC"] <- AIC(gam.clim.spp)
-
-pred.spp <- predict(gam.clim.spp, data.use)
-mod.comp[mod.comp$Model=="climate.spp", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.spp)^2))
-# anova(gam.clim.spp) 
-
-save(gam.clim.spp, file=file.path(dir.out, "gam_clim_spp.Rdata"))
-# ----------
-
-# ----------
-# Canopy-based climate model
-# ----------
-gam.clim.cc <- gam(log(BA.inc)~ 
-                      s(tmean, k=3, by=Canopy.Class) +
-                      s(precip, k=3, by=Canopy.Class) +
-                      s(vpd.max, k=3, by=Canopy.Class) +
-                      s(dbh.recon, k=3, by=Species) +
-                      s(Year, k=4, by=PlotID)+
-                      Site.Code + PlotID  + TreeID + Canopy.Class + Species,
-                    # random=list(Site=~1, PlotID=~1, TreeID=~1),
-                    data=data.use)
-mod.comp[mod.comp$Model=="climate.cc", "r.sq"] <- summary(gam.clim.cc)$r.sq # R-squared
-mod.comp[mod.comp$Model=="climate.cc", "dev.expl"] <- summary(gam.clim.cc)$dev.expl # explained deviance
-mod.comp[mod.comp$Model=="climate.cc", "AIC"] <- AIC(gam.clim.cc)
-# anova(gam.clim.cc) 
-
-pred.cc <- predict(gam.clim.cc, data.use)
-mod.comp[mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.cc)^2))
-
-save(gam.clim.cc, file=file.path(dir.out, "gam_clim_cc.Rdata"))
-# ----------
-
-# ----------
-# SpeciesxCanopy model
-# ----------
-gam.clim.spp.cc <- gam(log(BA.inc)~ 
-                     s(tmean, k=3, by=spp.cc) +
-                     s(precip, k=3, by=spp.cc) +
-                     s(vpd.max, k=3, by=spp.cc) +
-                     s(dbh.recon, k=3, by=Species) +
-                     s(Year, k=4, by=PlotID)+
-                     Site.Code + PlotID  + TreeID + Canopy.Class + Species,
-                   # random=list(Site=~1, PlotID=~1, TreeID=~1),
-                   data=data.use)
-mod.comp[mod.comp$Model=="climate.spp.cc", "r.sq"] <- summary(gam.clim.spp.cc)$r.sq # R-squared
-mod.comp[mod.comp$Model=="climate.spp.cc", "dev.expl"] <- summary(gam.clim.spp.cc)$dev.expl # explained deviance
-mod.comp[mod.comp$Model=="climate.spp.cc", "AIC"] <- AIC(gam.clim.spp.cc)
-
-pred.spp.cc <- predict(gam.clim.spp.cc, data.use)
-mod.comp[mod.comp$Model=="climate.spp.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.spp.cc)^2))
-
-# anova(gam.clim.spp.cc) 
-
-save(gam.clim.spp.cc, file=file.path(dir.out, "gam_clim_spp.cc.Rdata"))
-# ----------
-
-# ----------
-# Species + Canopy model
-# ----------
-gam.all.var <- gam(log(BA.inc)~ 
-                     s(tmean, k=3, by=Canopy.Class) +
-                     s(precip, k=3, by=Canopy.Class) +
-                     s(vpd.max, k=3, by=Canopy.Class) +
-                     s(tmean, k=3, by=Species) +
-                     s(precip, k=3, by=Species) +
-                     s(vpd.max, k=3, by=Species) +
-                     s(dbh.recon, k=3, by=Species) +
-                     s(Year, k=4, by=PlotID)+
-                     Site.Code + PlotID  + TreeID + Canopy.Class + Species,
-                   # random=list(Site=~1, PlotID=~1, TreeID=~1),
-                   data=data.use)
-mod.comp[mod.comp$Model=="full", "r.sq"] <- summary(gam.all.var)$r.sq # R-squared
-mod.comp[mod.comp$Model=="full", "dev.expl"] <- summary(gam.all.var)$dev.expl # explained deviance
-mod.comp[mod.comp$Model=="full", "AIC"] <- AIC(gam.all.var)
-
-pred.full <- predict(gam.all.var, data.use)
-mod.comp[mod.comp$Model=="full", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.full)^2))
-
-# anova(gam.all.var) 
-
-save(gam.all.var, file=file.path(dir.out, "gam_all_variables.Rdata"))
+  # ----------
+  # Canopy-based climate model
+  # ----------
+  gam.clim.cc <- gam(log(BA.inc)~ 
+                        s(tmean, k=3, by=Canopy.Class) +
+                        s(precip, k=3, by=Canopy.Class) +
+                        s(vpd.max, k=3, by=Canopy.Class) +
+                        s(dbh.recon, k=3, by=Species) +
+                        s(Year, k=4, by=PlotID)+
+                        Site.Code + PlotID  + TreeID + Canopy.Class + Species,
+                      # random=list(Site=~1, PlotID=~1, TreeID=~1),
+                      data=data.use[data.use$Species==SPP,])
+  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "r.sq"] <- summary(gam.clim.cc)$r.sq # R-squared
+  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "dev.expl"] <- summary(gam.clim.cc)$dev.expl # explained deviance
+  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "AIC"] <- AIC(gam.clim.cc)
+  # anova(gam.clim.cc) 
+  
+  pred.cc <- predict(gam.clim.cc, data.use)
+  mod.comp[model.comp$Species==SPP & mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc)-pred.cc)^2))
+  
+  save(gam.clim.cc, file=file.path(dir.out, paste0("gam_clim_cc_", SPP, ".Rdata")))
+  # ----------
+}
 # ----------
 
 # Save Table 2
@@ -225,444 +142,3 @@ mod.comp$RMSE <- round(mod.comp$RMSE, 3)
 write.csv(mod.comp, file.path(dir.out, "ModComparison_Full.csv"), row.names=F)
 # --------------------------------
 
-
-# --------------------------------
-# 4. Calculating the posterior estimates for the effects for graphing
-# --------------------------------
-source("0_Calculate_GAMM_Posteriors.R")
-n=100
-
-# ----------
-# Null Model: No climatic effects
-# ----------
-# Load gam.null
-load(file.path(dir.out, "gam_null.Rdata"))
-
-# Create a data frame with just what we need for the null model
-gam.null$formula
-yrs = min(data.use$Year):max(data.use$Year)
-# Create a data frame with the factors that we care about (the "by" terms)
-fac.df <- data.frame(PlotID = rep(unique(data.use$PlotID), 
-                                  each=length(unique(data.use$Species))),
-                     Species= rep(unique(data.use$Species)))
-
-# Create a data frame with the numeric predictors we care about (the spline terms)
-dat.null <- data.frame(Year=yrs,
-                       dbh.recon=seq(min(data.use$dbh.recon), 
-                                     max(data.use$dbh.recon), 
-                                     length.out=length(yrs)))
-dat.null <- merge(dat.null, fac.df, all=T)
-
-# Add in dummy levels for factors we don't care about for this model
-dat.null$Species <- factor(dat.null$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-dat.null$Site.Code <- substr(dat.null$PlotID, 1, 2)
-dat.null$Site.Code <- car::recode(dat.null$Site.Code, "'TP'='HF'")
-dat.null$TreeID <- data.use$TreeID[1]
-dat.null$Canopy.Class <- data.use$Canopy.Class[1]
-summary(dat.null)
-dim(dat.null)
-
-# Do the posterior predictions
-pred.null <- post.distns(model.gam=gam.null, model.name="null", n=n, newdata=dat.null, vars=c("dbh.recon", "Year"), terms=T)
-null.out <- pred.null$ci
-null.out[,c("Species")] <- dat.null[,c("Species")]
-null.out$x <- as.numeric(null.out$x) # making x numeric; will make factors NA
-summary(null.out)
-
-null.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(null.out[,c("mean", "lwr", "upr")])
-summary(null.out)
-
-summary(null.out[null.out$Effect=="dbh.recon" & null.out$PlotID==null.out$PlotID[1],])
-
-png(file.path(dir.out, "SizeResponse_0Null.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=null.out[null.out$Effect=="dbh.recon" & null.out$PlotID==null.out$PlotID[1],]) +
-  ggtitle("Null Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
-dev.off()
-
-png(file.path(dir.out, "YearResponse_0Null.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=null.out[null.out$Effect=="Year" & null.out$Species==null.out$Species[1],]) +
-  ggtitle("Null Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
-dev.off()
-# ----------
-
-
-
-# ----------
-# Base Climate Model: Global climatic effects
-# ----------
-# Load gam.clim.base
-load(file.path(dir.out, "gam_clim_base.Rdata"))
-
-# Create a data frame with just what we need for the clim.base model
-gam.clim.base$formula
-yrs = min(data.use$Year):max(data.use$Year)
-# Create a data frame with the factors that we care about (the "by" terms)
-fac.df <- data.frame(PlotID = rep(unique(data.use$PlotID), 
-                                  each=length(unique(data.use$Species))),
-                     Species= rep(unique(data.use$Species)))
-
-# Create a data frame with the numeric predictors we care about (the spline terms)
-dat.clim.base <- data.frame(Year=yrs,
-                       dbh.recon=seq(min(data.use$dbh.recon), 
-                                     max(data.use$dbh.recon), 
-                                     length.out=length(yrs)),
-                       tmean=seq(min(data.use$tmean), 
-                                     max(data.use$tmean), 
-                                     length.out=length(yrs)),
-                       precip=seq(min(data.use$precip), 
-                                 max(data.use$precip), 
-                                 length.out=length(yrs)),
-                       vpd.max=seq(min(data.use$vpd.max), 
-                                 max(data.use$vpd.max), 
-                                 length.out=length(yrs))
-                       )
-dat.clim.base <- merge(dat.clim.base, fac.df, all=T)
-
-# Add in dummy levels for factors we don't care about for this model
-dat.clim.base$Species <- factor(dat.clim.base$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-dat.clim.base$Site.Code <- substr(dat.clim.base$PlotID, 1, 2)
-dat.clim.base$Site.Code <- car::recode(dat.clim.base$Site.Code, "'TP'='HF'")
-dat.clim.base$TreeID <- data.use$TreeID[1]
-dat.clim.base$Canopy.Class <- data.use$Canopy.Class[1]
-summary(dat.clim.base)
-dim(dat.clim.base)
-
-# Do the posterior predictions
-pred.clim.base <- post.distns(model.gam=gam.clim.base, model.name="clim.base", n=n, newdata=dat.clim.base, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.base.out <- pred.clim.base$ci
-clim.base.out[,c("Species")] <- dat.clim.base[,c("Species")]
-clim.base.out$x <- as.numeric(clim.base.out$x) # making x numeric; will make factors NA
-summary(clim.base.out)
-
-clim.base.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.base.out[,c("mean", "lwr", "upr")])
-summary(clim.base.out)
-
-png(file.path(dir.out, "YearResponse_BaseClim.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.base.out[clim.base.out$Effect=="Year",]) +
-  ggtitle("Base Climate Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
-dev.off()
-
-png(file.path(dir.out, "SizeResponse_BaseClim.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.base.out[clim.base.out$Effect=="dbh.recon" & clim.base.out$PlotID==clim.base.out$PlotID[1],]) +
-  ggtitle("Base Climate Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
-dev.off()
-
-png(file.path(dir.out, "ClimateResponse_BaseClim.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.base.out[clim.base.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.base.out$PlotID==clim.base.out$PlotID[1] & clim.base.out$Species==clim.base.out$Species[1],]) +
-  ggtitle("Base Climate Model") +
-  facet_wrap(~Effect, scales="free_x") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
-dev.off()
-# ----------
-
-# ----------
-# Species Climate Model: Species-based climatic effects
-# ----------
-# Load gam.clim.spp
-load(file.path(dir.out, "gam_clim_spp.Rdata"))
-
-# Create a data frame with just what we need for the clim.spp model
-gam.clim.spp$formula
-yrs = min(data.use$Year):max(data.use$Year)
-# Create a data frame with the factors that we care about (the "by" terms)
-fac.df <- data.frame(PlotID = rep(unique(data.use$PlotID), 
-                                  each=length(unique(data.use$Species))),
-                     Species= rep(unique(data.use$Species)))
-
-# Create a data frame with the numeric predictors we care about (the spline terms)
-dat.clim.spp <- data.frame(Year=yrs,
-                            dbh.recon=seq(min(data.use$dbh.recon), 
-                                          max(data.use$dbh.recon), 
-                                          length.out=length(yrs)),
-                            tmean=seq(min(data.use$tmean), 
-                                      max(data.use$tmean), 
-                                      length.out=length(yrs)),
-                            precip=seq(min(data.use$precip), 
-                                       max(data.use$precip), 
-                                       length.out=length(yrs)),
-                            vpd.max=seq(min(data.use$vpd.max), 
-                                        max(data.use$vpd.max), 
-                                        length.out=length(yrs))
-)
-dat.clim.spp <- merge(dat.clim.spp, fac.df, all=T)
-
-# Add in dummy levels for factors we don't care about for this model
-dat.clim.spp$Species <- factor(dat.clim.spp$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-dat.clim.spp$Site.Code <- substr(dat.clim.spp$PlotID, 1, 2)
-dat.clim.spp$Site.Code <- car::recode(dat.clim.spp$Site.Code, "'TP'='HF'")
-dat.clim.spp$TreeID <- data.use$TreeID[1]
-dat.clim.spp$Canopy.Class <- data.use$Canopy.Class[1]
-summary(dat.clim.spp)
-dim(dat.clim.spp)
-
-# Do the posterior predictions
-pred.clim.spp <- post.distns(model.gam=gam.clim.spp, model.name="clim.spp", n=n, newdata=dat.clim.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.spp.out <- pred.clim.spp$ci
-clim.spp.out[,c("Species")] <- dat.clim.spp[,c("Species")]
-clim.spp.out$x <- as.numeric(clim.spp.out$x) # making x numeric; will make factors NA
-summary(clim.spp.out)
-
-clim.spp.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.spp.out[,c("mean", "lwr", "upr")])
-summary(clim.spp.out)
-
-png(file.path(dir.out, "YearResponse_Spp.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.out[clim.spp.out$Effect=="Year" & clim.spp.out$Species==clim.spp.out$Species[1],]) +
-  ggtitle("Species Climate Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
-dev.off()
-
-png(file.path(dir.out, "SizeResponse_Spp.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.out[clim.spp.out$Effect=="dbh.recon" & clim.spp.out$PlotID==clim.spp.out$PlotID[1],]) +
-  ggtitle("Species Climate Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
-dev.off()
-
-png(file.path(dir.out, "ClimateResponse_Spp.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.spp.out$PlotID==clim.spp.out$PlotID[1],]) +
-  ggtitle("Species Climate Model") +
-  facet_wrap(~Effect, scales="free_x") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
-dev.off()
-# ----------
-
-# ----------
-# Canopy Class Climate Model: Canopy-based climatic effects
-# ----------
-# Load gam.clim.cc
-load(file.path(dir.out, "gam_clim_cc.Rdata"))
-
-# Create a data frame with just what we need for the clim.cc model
-gam.clim.cc$formula
-yrs = min(data.use$Year):max(data.use$Year)
-# Create a data frame with the factors that we care about (the "by" terms)
-fac.df <- data.frame(PlotID = rep(unique(data.use$PlotID), 
-                                  each=length(unique(data.use$Species))*length(unique(data.use$Canopy.Class))),
-                     Species= rep(unique(data.use$Species)),
-                     Canopy.Class = rep(unique(data.use$Canopy.Class), each=length(unique(data.use$Species))))
-
-# Create a data frame with the numeric predictors we care about (the spline terms)
-dat.clim.cc <- data.frame(Year=yrs,
-                           dbh.recon=seq(min(data.use$dbh.recon), 
-                                         max(data.use$dbh.recon), 
-                                         length.out=length(yrs)),
-                           tmean=seq(min(data.use$tmean), 
-                                     max(data.use$tmean), 
-                                     length.out=length(yrs)),
-                           precip=seq(min(data.use$precip), 
-                                      max(data.use$precip), 
-                                      length.out=length(yrs)),
-                           vpd.max=seq(min(data.use$vpd.max), 
-                                       max(data.use$vpd.max), 
-                                       length.out=length(yrs))
-)
-dat.clim.cc <- merge(dat.clim.cc, fac.df, all=T)
-
-# Add in dummy levels for factors we don't care about for this model
-dat.clim.cc$Species <- factor(dat.clim.cc$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-dat.clim.cc$Site.Code <- substr(dat.clim.cc$PlotID, 1, 2)
-dat.clim.cc$Site.Code <- car::recode(dat.clim.cc$Site.Code, "'TP'='HF'")
-dat.clim.cc$TreeID <- data.use$TreeID[1]
-summary(dat.clim.cc)
-dim(dat.clim.cc)
-
-# Do the posterior predictions
-pred.clim.cc <- post.distns(model.gam=gam.clim.cc, model.name="clim.cc", n=n, newdata=dat.clim.cc, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.cc.out <- pred.clim.cc$ci
-clim.cc.out[,c("Species", "Canopy.Class")] <- dat.clim.cc[,c("Species", "Canopy.Class")]
-clim.cc.out$x <- as.numeric(clim.cc.out$x) # making x numeric; will make factors NA
-summary(clim.cc.out)
-
-clim.cc.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.cc.out[,c("mean", "lwr", "upr")])
-summary(clim.cc.out)
-
-png(file.path(dir.out, "YearResponse_Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.cc.out[clim.cc.out$Effect=="Year" & clim.cc.out$Canopy.Class==clim.cc.out$Canopy.Class[1] & clim.cc.out$Species==clim.cc.out$Species[1],]) +
-  ggtitle("Canopy Climate Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
-dev.off()
-
-png(file.path(dir.out, "SizeResponse_Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.cc.out[clim.cc.out$Effect=="dbh.recon" & clim.cc.out$PlotID==clim.cc.out$PlotID[1],]) +
-  ggtitle("Canopy Climate Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
-dev.off()
-
-png(file.path(dir.out, "CliamteResponse_Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.cc.out[clim.cc.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.cc.out$PlotID==clim.cc.out$PlotID[1],]) +
-  ggtitle("Canopy Climate Model") +
-  facet_wrap(~Effect, scales="free_x") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Canopy.Class))
-dev.off()
-# ----------
-
-# ----------
-# Species x Canopy Climate Model: Species & Canopy-based climatic effects: single term
-# ----------
-# Load gam.clim.spp.cc
-load(file.path(dir.out, "gam_clim_spp.cc.Rdata"))
-
-# Create a data frame with just what we need for the clim.spp.cc model
-gam.clim.spp.cc$formula
-yrs = min(data.use$Year):max(data.use$Year)
-# Create a data frame with the factors that we care about (the "by" terms)
-fac.df <- data.frame(PlotID = rep(unique(data.use$PlotID), 
-                                  each=length(unique(data.use$Species))*length(unique(data.use$Canopy.Class))),
-                     Species= rep(unique(data.use$Species)),
-                     Canopy.Class = rep(unique(data.use$Canopy.Class), each=length(unique(data.use$Species))))
-fac.df$spp.cc <- paste(fac.df$Species, fac.df$Canopy.Class, sep=".")
-
-# Create a data frame with the numeric predictors we care about (the spline terms)
-dat.clim.spp.cc <- data.frame(Year=yrs,
-                          dbh.recon=seq(min(data.use$dbh.recon), 
-                                        max(data.use$dbh.recon), 
-                                        length.out=length(yrs)),
-                          tmean=seq(min(data.use$tmean), 
-                                    max(data.use$tmean), 
-                                    length.out=length(yrs)),
-                          precip=seq(min(data.use$precip), 
-                                     max(data.use$precip), 
-                                     length.out=length(yrs)),
-                          vpd.max=seq(min(data.use$vpd.max), 
-                                      max(data.use$vpd.max), 
-                                      length.out=length(yrs))
-)
-dat.clim.spp.cc <- merge(dat.clim.spp.cc, fac.df, all=T)
-
-# Add in dummy levels for factors we don't care about for this model
-dat.clim.spp.cc$Species <- factor(dat.clim.spp.cc$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-dat.clim.spp.cc$Site.Code <- substr(dat.clim.spp.cc$PlotID, 1, 2)
-dat.clim.spp.cc$Site.Code <- car::recode(dat.clim.spp.cc$Site.Code, "'TP'='HF'")
-dat.clim.spp.cc$TreeID <- data.use$TreeID[1]
-summary(dat.clim.spp.cc)
-dim(dat.clim.spp.cc)
-
-# Do the posterior predictions
-pred.clim.spp.cc <- post.distns(model.gam=gam.clim.spp.cc, model.name="clim.spp.cc", n=n, newdata=dat.clim.spp.cc, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-clim.spp.cc.out <- pred.clim.spp.cc$ci
-clim.spp.cc.out[,c("Species", "Canopy.Class", "spp.cc")] <- dat.clim.spp.cc[,c("Species", "Canopy.Class", "spp.cc")]
-clim.spp.cc.out$x <- as.numeric(clim.spp.cc.out$x) # making x numeric; will make factors NA
-summary(clim.spp.cc.out)
-
-clim.spp.cc.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.spp.cc.out[,c("mean", "lwr", "upr")])
-summary(clim.spp.cc.out)
-
-png(file.path(dir.out, "YearResponse_Spp.Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.cc.out[clim.spp.cc.out$Effect=="Year" & clim.spp.cc.out$Canopy.Class==clim.spp.cc.out$Canopy.Class[1] & clim.spp.cc.out$Species==clim.spp.cc.out$Species[1],]) +
-  ggtitle("Species-Canopy Climate Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
-dev.off()
-
-png(file.path(dir.out, "SizeResponse_Spp.Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.cc.out[clim.spp.cc.out$Effect=="dbh.recon" & clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],]) +
-  ggtitle("Species-Canopy Climate Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
-dev.off()
-
-png(file.path(dir.out, "ClimateResponse_Spp.Canopy.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.cc.out[clim.spp.cc.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.spp.cc.out$PlotID==clim.spp.cc.out$PlotID[1],]) +
-  ggtitle("Species-Canopy Climate Model") +
-  facet_grid(Species~Effect, scales="free_x") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Canopy.Class))
-dev.off()
-# ----------
-
-
-# ----------
-# Species + Canopy Climate Model: Species & Canopy-based climatic effects: additive terms
-# ----------
-# Load gam.all.var
-load(file.path(dir.out, "gam_all_variables.Rdata"))
-
-# Create a data frame with just what we need for the all.var model
-gam.all.var$formula
-yrs = min(data.use$Year):max(data.use$Year)
-# Create a data frame with the factors that we care about (the "by" terms)
-fac.df <- data.frame(PlotID = rep(unique(data.use$PlotID), 
-                                  each=length(unique(data.use$Species))*length(unique(data.use$Canopy.Class))),
-                     Species= rep(unique(data.use$Species)),
-                     Canopy.Class = rep(unique(data.use$Canopy.Class), each=length(unique(data.use$Species))))
-fac.df$spp.cc <- paste(fac.df$Species, fac.df$Canopy.Class, sep=".")
-
-# Create a data frame with the numeric predictors we care about (the spline terms)
-dat.all.var <- data.frame(Year=yrs,
-                              dbh.recon=seq(min(data.use$dbh.recon), 
-                                            max(data.use$dbh.recon), 
-                                            length.out=length(yrs)),
-                              tmean=seq(min(data.use$tmean), 
-                                        max(data.use$tmean), 
-                                        length.out=length(yrs)),
-                              precip=seq(min(data.use$precip), 
-                                         max(data.use$precip), 
-                                         length.out=length(yrs)),
-                              vpd.max=seq(min(data.use$vpd.max), 
-                                          max(data.use$vpd.max), 
-                                          length.out=length(yrs))
-)
-dat.all.var <- merge(dat.all.var, fac.df, all=T)
-
-# Add in dummy levels for factors we don't care about for this model
-dat.all.var$Species <- factor(dat.all.var$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-dat.all.var$Site.Code <- substr(dat.all.var$PlotID, 1, 2)
-dat.all.var$Site.Code <- car::recode(dat.all.var$Site.Code, "'TP'='HF'")
-dat.all.var$TreeID <- data.use$TreeID[1]
-summary(dat.all.var)
-dim(dat.all.var)
-
-# Do the posterior predictions
-pred.all.var <- post.distns(model.gam=gam.all.var, model.name="all.var", n=n, newdata=dat.all.var, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-all.var.out <- pred.all.var$ci
-all.var.out[,c("Species", "Canopy.Class", "spp.cc")] <- dat.all.var[,c("Species", "Canopy.Class", "spp.cc")]
-all.var.out$x <- as.numeric(all.var.out$x) # making x numeric; will make factors NA
-summary(all.var.out)
-
-all.var.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(all.var.out[,c("mean", "lwr", "upr")])
-summary(all.var.out)
-
-png(file.path(dir.out, "YearResponse_Spp_Canopy_All.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=all.var.out[all.var.out$Effect=="Year" & all.var.out$Canopy.Class==all.var.out$Canopy.Class[1] & all.var.out$Species==all.var.out$Species[1],]) +
-  ggtitle("Species + Canopy ('All') Climate Model") +
-  facet_wrap(~PlotID, scales="free_y") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai))
-dev.off()
-
-png(file.path(dir.out, "SizeResponse_Spp_Canopy_All.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=all.var.out[all.var.out$Effect=="dbh.recon" & all.var.out$PlotID==all.var.out$PlotID[1],]) +
-  ggtitle("Species + Canopy ('All') Climate Model") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species))
-dev.off()
-
-png(file.path(dir.out, "ClimateResponse_Spp_Canopy_All.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=all.var.out[all.var.out$Effect%in% c("tmean", "precip", "vpd.max") & all.var.out$PlotID==all.var.out$PlotID[1],]) +
-  ggtitle("Species + Canopy ('All') Climate Model") +
-  facet_grid(Species~Effect, scales="free_x") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Canopy.Class))
-dev.off()
-# ----------
-
-# --------------------------------
