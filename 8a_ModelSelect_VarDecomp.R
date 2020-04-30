@@ -85,11 +85,11 @@ for(SPP in spp.use){
                        random=list(Site.Code=~1, TreeID=~1),
                        data=data.use[data.use$Species==SPP,])
   
-  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "r.sq"] <- summary(gam.clim.spp)$r.sq # R-squared
-  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
-  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "AIC"] <- AIC(gam.clim.spp)
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "r.sq"] <- summary(gam.clim.spp$gam)$r.sq # R-squared
+  # mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
+  mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "AIC"] <- AIC(gam.clim.spp$lme)
   
-  pred.comp <- predict(gam.clim.spp, data.use[data.use$Species==SPP,])
+  pred.comp <- predict(gam.clim.spp$gam, data.use[data.use$Species==SPP,])
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "RMSE"] <- sqrt(mean((log(data.use$BA.inc[data.use$Species==SPP])-pred.comp)^2))
   
   # anova(gam.clim.base) 
