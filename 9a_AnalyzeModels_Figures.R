@@ -74,6 +74,7 @@ summary(data.use)
 model.comp <- read.csv(file.path(dir.out, "ModComparison_Full.csv"))
 # model.comp$Description <- c("null", "naive", "species", "canopy", "pseudo-interactive", "hypothesis")
 
+write.csv(model.comp, file.path(path.google, "Table2_ModelComparison.csv"), row.names=F)
 # mean(model.comp$dev.exp); sd(model.comp$dev.exp)
 # round(range(model.comp$dev.exp), 3)
 # --------------------------------
