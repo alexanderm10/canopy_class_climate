@@ -108,7 +108,7 @@ for(SPP in spp.use){
                         s(dbh.recon, k=3, by=Species) +
                         s(Year, k=4, by=PlotID)+
                         PlotID + Canopy.Class,
-                      random=list(Site.Code=~1, PlotID=~1, TreeID=~1),
+                      random=list(Site.Code=~1, TreeID=~1),
                       data=data.use[data.use$Species==SPP,])
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "r.sq"] <- summary(gam.clim.cc$gam)$r.sq # R-squared
   # mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "dev.expl"] <- summary(gam.clim.cc$gam)$dev.expl # explained deviance
