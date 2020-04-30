@@ -62,7 +62,7 @@ dir.create(dir.out, recursive=T, showWarnings=F)
 # --------------------------------
 # setting up a loop to automatically go through each site
 # --------------------------------
-source("0_Calculate_GAMM_Posteriors.R")
+source("0_Calculate_GAMM_Posteriors_Updated.R")
 n=100
 
 mod.stats <- data.frame(Site.Code=unique(data.use$Site.Code), r.sq=NA, dev.expl=NA, AIC=NA)

@@ -13,7 +13,7 @@ library(car)
 
 # Set up a directory where to save things & not overwrite past efforts
 dir.out <- "processed_data/gam_results_VarDecomp"
-dir.create(dir.out, recursive=T, showWarnings = F)
+if(!dir.exists(dir.out)) dir.create(dir.out, recursive=T, showWarnings = F)
 
 path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 2 2020-04/"
 dir.figs <- file.path(path.google, "figures")
@@ -89,7 +89,7 @@ write.csv(model.comp, file.path(path.google, "Table2_ModelComparison.csv"), row.
 # Naive Climate Model: Global climatic effects
 # ----------
 # Load gam.clim.base
-load(file.path(dir.out, "gam_clim_base.Rdata"))
+# load(file.path(dir.out, "gam_clim_base.Rdata"))
 
 # Create a data frame with just what we need for the clim.base model
 gam.clim.base$formula

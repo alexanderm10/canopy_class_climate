@@ -75,15 +75,28 @@ mod.comp <- data.frame(Model=rep(c("climate.spp", "climate.cc"), each=length(spp
 
 for(SPP in spp.use){
   print(paste("working on speices:", SPP) )
-  gam.clim.spp <- gamm(log(BA.inc)~
-                         s(tmean, k=3) +
-                         s(precip, k=3) +
-                         s(vpd.max, k=3) +
-                         s(dbh.recon, k=3, by=Species) +
-                         s(Year, k=4, by=PlotID)+
-                         PlotID,
-                       random=list(Site.Code=~1, TreeID=~1),
-                       data=data.use[data.use$Species==SPP,])
+  if(SPP %in% c("FAGR", "QURU")){
+    gam.clim.spp <- gamm(log(BA.inc)~
+                           s(tmean, k=3) +
+                           s(precip, k=3) +
+                           s(vpd.max, k=3) +
+                           s(dbh.recon, k=3, by=Species) +
+                           s(Year, k=4, by=PlotID)+
+                           PlotID,
+                         random=list(Site.Code=~1, PlotID=~1, TreeID=~1),
+                         data=data.use[data.use$Species==SPP,])
+  } else {
+    gam.clim.spp <- gamm(log(BA.inc)~
+                           s(tmean, k=3) +
+                           s(precip, k=3) +
+                           s(vpd.max, k=3) +
+                           s(dbh.recon, k=3, by=Species) +
+                           s(Year, k=4, by=PlotID)+
+                           PlotID,
+                         random=list(Site.Code=~1, TreeID=~1),
+                         data=data.use[data.use$Species==SPP,])
+    
+  }
   
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "r.sq"] <- summary(gam.clim.spp$gam)$r.sq # R-squared
   # mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
@@ -101,15 +114,27 @@ for(SPP in spp.use){
   # ----------
   # Canopy-based climate model
   # ----------
-  gam.clim.cc <- gamm(log(BA.inc)~ 
-                        s(tmean, k=3, by=Canopy.Class) +
-                        s(precip, k=3, by=Canopy.Class) +
-                        s(vpd.max, k=3, by=Canopy.Class) +
-                        s(dbh.recon, k=3, by=Species) +
-                        s(Year, k=4, by=PlotID)+
-                        PlotID + Canopy.Class,
-                      random=list(Site.Code=~1, TreeID=~1),
-                      data=data.use[data.use$Species==SPP,])
+  if(SPP %in% c("FAGR", "QURU")){
+    gam.clim.cc <- gamm(log(BA.inc)~ 
+                          s(tmean, k=3, by=Canopy.Class) +
+                          s(precip, k=3, by=Canopy.Class) +
+                          s(vpd.max, k=3, by=Canopy.Class) +
+                          s(dbh.recon, k=3, by=Species) +
+                          s(Year, k=4, by=PlotID)+
+                          PlotID + Canopy.Class,
+                        random=list(Site.Code=~1, PlotID=~1, TreeID=~1),
+                        data=data.use[data.use$Species==SPP,])
+  } else {
+    gam.clim.cc <- gamm(log(BA.inc)~ 
+                          s(tmean, k=3, by=Canopy.Class) +
+                          s(precip, k=3, by=Canopy.Class) +
+                          s(vpd.max, k=3, by=Canopy.Class) +
+                          s(dbh.recon, k=3, by=Species) +
+                          s(Year, k=4, by=PlotID)+
+                          PlotID + Canopy.Class,
+                        random=list(Site.Code=~1, TreeID=~1),
+                        data=data.use[data.use$Species==SPP,])
+  }
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "r.sq"] <- summary(gam.clim.cc$gam)$r.sq # R-squared
   # mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "dev.expl"] <- summary(gam.clim.cc$gam)$dev.expl # explained deviance
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "AIC"] <- AIC(gam.clim.cc$lme)
