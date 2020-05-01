@@ -73,8 +73,29 @@ summary(data.use)
 # --------------------------------
 model.comp <- read.csv(file.path(dir.out, "ModComparison_Full.csv"))
 # model.comp$Description <- c("null", "naive", "species", "canopy", "pseudo-interactive", "hypothesis")
+names(model.comp)[names(model.comp)=="r.sq"] <- "R2"
+model.comp$Model <- car::recode(model.comp$Model, "'climate.spp'='spp'; 'climate.cc'='cc'")
+model.comp
 
-write.csv(model.comp, file.path(path.google, "Table2_ModelComparison.csv"), row.names=F)
+# Reshapign the table a bit
+# test <- reshape2::recast(r.sq ~ Species, data=model.comp)
+suff <- unique(model.comp$Model)
+table2 <- reshape(model.comp[,c("Model", "Species", "R2", "AIC", "RMSE")], idvar = "Species", timevar="Model", direction = "wide")
+table2$dR2 <- table2$R2.cc - table2$R2.spp
+table2$dAIC <- table2$AIC.cc - table2$AIC.spp
+table2$dRMSE <- table2$RMSE.cc - table2$RMSE.spp
+table2$n[table2$Species=="TSCA"] <- 496
+table2$n[table2$Species=="FAGR"] <- 148
+table2$n[table2$Species=="ACRU"] <- 165
+table2$n[table2$Species=="QURU"] <- 275
+
+table2 <- table2[,c("Species", "n", paste("R2", suff, sep="."), "dR2", paste("AIC", suff, sep="."), "dAIC", paste("RMSE", suff, sep="."), "dRMSE")]
+
+table2$Species <- factor(table2$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
+table2 <- table2[order(table2$Species),]
+
+
+write.csv(table2, file.path(path.google, "Table2_ModelComparison.csv"), row.names=F)
 # mean(model.comp$dev.exp); sd(model.comp$dev.exp)
 # round(range(model.comp$dev.exp), 3)
 # --------------------------------
@@ -84,103 +105,6 @@ write.csv(model.comp, file.path(path.google, "Table2_ModelComparison.csv"), row.
 # --------------------------------
 # 4. Calculating the posterior estimates for the effects for graphing
 # --------------------------------
-
-# ----------
-# Naive Climate Model: Global climatic effects
-# ----------
-# Load gam.clim.base
-# load(file.path(dir.out, "gam_clim_base.Rdata"))
-
-# Create a data frame with just what we need for the clim.base model
-gam.clim.base$formula
-yrs = min(data.use$Year):max(data.use$Year)
-# Create a data frame with the factors that we care about (the "by" terms)
-fac.df <- data.frame(PlotID = rep(unique(data.use$PlotID), 
-                                  each=length(unique(data.use$Species))),
-                     Species= rep(unique(data.use$Species)))
-
-# Create a data frame with the numeric predictors we care about (the spline terms)
-dat.clim.base <- data.frame(Year=yrs,
-                            dbh.recon=seq(min(data.use$dbh.recon), 
-                                          max(data.use$dbh.recon), 
-                                          length.out=length(yrs)),
-                            tmean=seq(min(data.use$tmean), 
-                                      max(data.use$tmean), 
-                                      length.out=length(yrs)),
-                            precip=seq(min(data.use$precip), 
-                                       max(data.use$precip), 
-                                       length.out=length(yrs)),
-                            vpd.max=seq(min(data.use$vpd.max), 
-                                        max(data.use$vpd.max), 
-                                        length.out=length(yrs))
-)
-dat.clim.base <- merge(dat.clim.base, fac.df, all=T)
-
-# Add in dummy levels for factors we don't care about for this model
-dat.clim.base$Species <- factor(dat.clim.base$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-dat.clim.base$Site.Code <- substr(dat.clim.base$PlotID, 1, 2)
-dat.clim.base$Site.Code <- car::recode(dat.clim.base$Site.Code, "'TP'='HF'")
-dat.clim.base$TreeID <- data.use$TreeID[1]
-dat.clim.base$Canopy.Class <- data.use$Canopy.Class[1]
-summary(dat.clim.base)
-dim(dat.clim.base)
-
-
-# Do the posterior predictions
-clim.base.out <- post.distns(model.gam=gam.clim.base, n=n, newdata=dat.clim.base, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
-# clim.base.out <- pred.clim.base$ci
-clim.base.out[,c("Species")] <- dat.clim.base[,c("Species")]
-clim.base.out$x <- as.numeric(clim.base.out$x) # making x numeric; will make factors NA
-summary(clim.base.out)
-
-clim.base.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.base.out[,c("mean", "lwr", "upr")])
-summary(clim.base.out)
-
-# Trim down to just the areas present for each species/plot etc:
-# Species DBH range
-for(SPP in unique(dat.clim.base$Species)){
-  dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
-  dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
-  
-  clim.base.out[clim.base.out$Effect=="dbh.recon" & clim.base.out$Species==paste(SPP) & (clim.base.out$x<dbh.min | clim.base.out$x>dbh.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
-}
-
-
-# Site
-for(SITE in unique(dat.clim.base$Site.Code)){
-  yr.min <- min(data.use[data.use$Site.Code==SITE,"Year"])
-  yr.max <- max(data.use[data.use$Site.Code==SITE,"Year"])
-  
-  clim.base.out[clim.base.out$Effect=="Year" & clim.base.out$Site.Code==SITE & (clim.base.out$x<yr.min | clim.base.out$x>yr.max),c("mean.bai", "lwr.bai", "upr.bai")] <- NA
-}
-
-
-tiff(file.path(dir.figs, "SupplementalFigure05_NaiveClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
-plot.size(dat.plot = clim.base.out[clim.base.out$PlotID==clim.base.out$PlotID[1],])
-dev.off()
-
-pdf(file.path(dir.figs, "SupplementalFigure05_NaiveClim_SizeEffect.pdf"), height=4.5, width=3)
-plot.size(dat.plot = clim.base.out[clim.base.out$PlotID==clim.base.out$PlotID[1],])
-dev.off()
-
-
-tiff(file.path(dir.figs, "SupplementalFigure06_NaiveClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
-plot.year(dat.plot=clim.base.out[clim.base.out$Species==clim.base.out$Species[1],])
-dev.off()
-
-pdf(file.path(dir.figs, "SupplementalFigure06_NaiveClim_YearEffect.pdf"), height=6, width=6)
-plot.year(dat.plot=clim.base.out[clim.base.out$Species==clim.base.out$Species[1],])
-dev.off()
-
-tiff(file.path(dir.figs, "SupplementalFigure07_NaiveClim_ClimateEffects.tiff"), height=6, width=6, unit="in", res=600)
-plot.climate(dat.plot=clim.base.out[clim.base.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.base.out$PlotID==clim.base.out$PlotID[1] & clim.base.out$Species==clim.base.out$Species[1],], canopy=F, species=F)
-dev.off()
-
-pdf(file.path(dir.figs, "SupplementalFigure07_NaiveClim_ClimateEffects.pdf"), height=6, width=6)
-plot.climate(dat.plot=clim.base.out[clim.base.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.base.out$PlotID==clim.base.out$PlotID[1] & clim.base.out$Species==clim.base.out$Species[1],], canopy=F, species=F)
-dev.off()
-
-# ----------
 
 # ----------
 # Species Climate Model: Species-based climatic effects
@@ -232,7 +156,7 @@ for(SPP in spp.use){
   load(file.path(dir.out, paste0("gam_clim_spp_", SPP, ".Rdata")))
   
   # Create a data frame with just what we need for the clim.spp model
-  gam.clim.spp$formula
+  gam.clim.spp$gam$formula
   
   # Do the posterior predictions
   pred.clim.spp <- post.distns(model.gam=gam.clim.spp, n=n, newdata=dat.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
@@ -255,18 +179,18 @@ deriv.spp.out$ci$Species <- factor(deriv.spp.out$ci$Species, levels=c("TSCA", "F
 clim.spp.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.spp.out[,c("mean", "lwr", "upr")])
 summary(clim.spp.out)
 
-# Trim down to just the areas present for each species/plot etc:
-# Species DBH range
-for(SPP in unique(dat.clim.spp$Species)){
+
+for(SPP in unique(clim.cc.out$Species)){
   dbh.min <- min(data.use[data.use$Species==paste(SPP),"dbh.recon"])
   dbh.max <- max(data.use[data.use$Species==paste(SPP),"dbh.recon"])
   
   rows.na <- which(clim.spp.out$Effect=="dbh.recon" & clim.spp.out$Species==paste(SPP) & (clim.spp.out$x<dbh.min | clim.spp.out$x>dbh.max))
   clim.spp.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
+  deriv.spp.out$sims[rows.na,] <- NA
   deriv.spp.out$ci[rows.na,c("dbh.recon", "mean", "lwr", "upr", "sig")] <- NA
   deriv.spp.out$sims[rows.na,] <- NA
+  
 }
-
 
 # Site
 for(SITE in unique(dat.clim.spp$Site.Code)){
@@ -290,7 +214,7 @@ for(CC in unique(clim.spp.out$Species)){
   vpd.min <- min(data.use[rows.cc,"vpd.max"])
   vpd.max <- max(data.use[rows.cc,"vpd.max"])
   
-  rows.na <- which(clim.spp.out$Effect=="tmean" & clim.spp.out$Species==CC & (clim.spp.out$x<tmean.min | clim.spp.out$x>tmean.max))
+  rows.na <- which(clim.spp.out$Effect=="tmean" & clim.spp.out$Species==paste(CC) & (clim.spp.out$x<tmean.min | clim.spp.out$x>tmean.max))
   clim.spp.out[rows.na,c("mean.bai", "lwr.bai", "upr.bai")] <- NA
   deriv.spp.out$ci[rows.na,c("tmean", "mean", "lwr", "upr", "sig")] <- NA
   deriv.spp.out$sims[rows.na,] <- NA
@@ -338,7 +262,7 @@ plot.climate(dat.plot=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", 
 dev.off()
 
 # Getting numbers for the manuscript
-summary(deriv.spp.out)
+summary(deriv.spp.out$ci)
 
 
 # "The two northern-distributed and late-successional species Tsuga canadensis and Fagus grandifolia increased growth with high precipitation (0.03 ± 0.01 and 0.05 ± 0.01 %BAI/mm)."
@@ -423,7 +347,7 @@ for(SPP in spp.use){
   load(file.path(dir.out, paste0("gam_clim_cc_", SPP, ".Rdata")))
   
   # Create a data frame with just what we need for the clim.cc model
-  gam.clim.cc$formula
+  gam.clim.cc$gam$formula
   
   pred.clim.cc <- post.distns(model.gam=gam.clim.cc, n=n, newdata=dat.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
   deriv.clim.cc <- calc.derivs(model.gam=gam.clim.cc, newdata=dat.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), return.sims = T)

@@ -41,6 +41,7 @@ plot.year <- function(dat.plot){
     geom_line(aes(x=x, y=mean.bai*100, color=Species)) +
     geom_hline(yintercept=100, linetype="dashed") +
     scale_x_continuous(expand=c(0,0)) +
+    coord_cartesian(ylim=c(0,300)) +
     # coord_cartesian(ylim=c(0, 1750)) +
     labs(x = expression(bold(paste("Year"))), y = expression(bold(paste("Relativized BAI (%)")))) +
     theme(axis.line=element_line(color="black"), 
