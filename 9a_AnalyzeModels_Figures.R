@@ -264,48 +264,107 @@ dev.off()
 # Getting numbers for the manuscript
 summary(deriv.spp.out$ci)
 
+range(deriv.spp.out$ci$tmean, na.rm=T)
+range(deriv.spp.out$ci$precip, na.rm=T)
+range(deriv.spp.out$ci$vpd.max, na.rm=T)
+# -------------------
+# Fagus grandifolia:
+# With the exception of Fagus grandifolia precipitaiton response, species displayed highly non-linear sensitivities to climate.  Fagus grandifolia showed a linear sensitivity of XXX ± XXX %BAI/mm for precipitiaton.  However, Fagus grandifolia was insensitive to VPD at the species-level and only sensitive to temperatures below X˚C (XX ± XX %/BAI/˚C). 
+# -------------------
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="vpd.max",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="precip",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),])
 
-# "The two northern-distributed and late-successional species Tsuga canadensis and Fagus grandifolia increased growth with high precipitation (0.03 ± 0.01 and 0.05 ± 0.01 %BAI/mm)."
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T)
-
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T)
-
-
-
-# "Both species also so overall reduced growth at warmer temperatures, with Tsuga canadensis sensitive to temperatures below 16.3˚C (-7.88 ± 2.18) and Fagus grandifolia showing a mean sensitivity of -4.26 ± 1.97 %BAI/˚C across the full temperature range. "
-summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),"tmean"])
-
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T)
-
-summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),"tmean"])
-
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T)
+# Average precip stats
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
 
+# Minimum temperature for sensitivity
+round(min(deriv.spp.out$ci[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),"tmean"]), 1)
+
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+# -------------------
+
+# -------------------
+# Tsuga canadensis:
+# In contrast, Tsuga canadensis only showed growth sensitivity to changes in temperatures below XX ˚C where the mean sensitivity was XX ± XX %BAI/˚C.  This paralleled the observed Tsuga canadensis response to VPD, where it only showed reduced growth at VPD below XX kPA (XX ± XX %BAI/kPa).  Although Tsuga canadensis showed overall positive relationships to precipitation, it was only significantly sensitive to annual summer precipitation below XX mm (XX ± XX %BAI/mm).  
+# -------------------
+# summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="vpd.max",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="precip",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="tmean",])
+
+# Temperature
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),"tmean"]), 1)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+
+#VPD
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig),"vpd.max"]), 1)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+
+# Precip
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),"precip"]), 0)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="TSCA" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+# -------------------
 
 
-# "In contrast, Quercus rubra displays nearly opposite responses with higher growth under warm conditions (mean slope = XX±XX) and reduced growth in wet conditions (mean slope = XX±XX).  "
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="tmean",1:100], 2, mean, na.rm=T)*100, na.rm=T)
+# -------------------
+# Quercus rubra
+# Quercus rubra showed responses to temperature and preciptiation nearly opposite that of Tsuga canadensis with increasing growth rates at temperatures below X ˚C (XX ± XX %BAI/˚C) and reduced growth with summer precipitation above XX mm (XX ± XX %BAI/mm).  Without consideration of canopy position, Quercus rubra showed the greatest sensitivity to VPD with strong sensitivity below XX kPA (XX ± XX %BAI/VPD).  
+# -------------------
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="vpd.max",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="precip",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="tmean",])
 
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T)
+# Temperature
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),"tmean"]), 1)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+
+# Precip
+round(min(deriv.spp.out$ci[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),"precip"]), 0)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+
+#VPD
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig),"vpd.max"]), 1)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig) ,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+# -------------------
 
 
-# "Acer rubrum shows optimal growth in moderate conditions with peak growth at XX˚C and XX mm precipitation"
-mean(clim.spp.out[!is.na(clim.spp.out$mean.bai) & clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="tmean" & clim.spp.out$mean.bai==max(clim.spp.out$mean.bai[clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="tmean"], na.rm=T), "x"])
-mean(clim.spp.out[!is.na(clim.spp.out$mean.bai) & clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="precip" & clim.spp.out$mean.bai==max(clim.spp.out$mean.bai[clim.spp.out$Species=="ACRU" & clim.spp.out$Effect=="precip"], na.rm=T), "x"])
+# -------------------
+# Acer rubrum
+# Acer rubrum showed the lowest sensitivity to temperature and preciptiation, with temperature sensitivity only significant [UNDER X Conditions] (XX ± XX %BAI/˚C) and preciptiation sensitivity above XX mm (XX ± XX %BAI/mm).  Similar to Quercus rubra and Tsuga canadensis, Acer rubrum only showed sensitivity to low VPD (XX ± XX %BAI/kPa below XX kPA)
+# -------------------
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="vpd.max",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="precip",])
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean",])
 
-# "VPDmax responses among species ranged from insensitive in Fagus grandifolia (mean slope = XX±XX) to highly sensitive in Quercus rubra (mean slope = XX±XX)"
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="vpd.max",], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="FAGR" & deriv.spp.out$ci$var=="vpd.max",], 2, mean, na.rm=T)*100, na.rm=T)
+# Temperature
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),])
+
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig),"tmean"]), 1)
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig) & deriv.spp.out$ci$mean>0,"tmean"]), 1)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig)& deriv.spp.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig) & deriv.spp.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+
+round(min(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig) & deriv.spp.out$ci$mean<0,"tmean"]), 1)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig)& deriv.spp.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="tmean" & !is.na(deriv.spp.out$ci$sig) & deriv.spp.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+
+# Precip
+summary(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),])
+
+round(min(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),"precip"]), 0)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="precip" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+
+#VPD
+round(max(deriv.spp.out$ci[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig),"vpd.max"]), 1)
+round(mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="ACRU" & deriv.spp.out$ci$var=="vpd.max" & !is.na(deriv.spp.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T),2 )
+# -------------------
+# ---------------------------------------------
 
 
-mean(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="vpd.max",], 2, mean, na.rm=T)*100, na.rm=T); sd(apply(deriv.spp.out$sims[deriv.spp.out$ci$Species=="QURU" & deriv.spp.out$ci$var=="vpd.max",], 2, mean, na.rm=T)*100, na.rm=T)
-
-# ----------
-
-
-# ----------
-# Pseudo-Interactive model: Species x Canopy Climate Model: Species & Canopy-based climatic effects: single term
-# ----------
+# ---------------------------------------------
+# Canopy Class model
+# ---------------------------------------------
 yrs = min(data.use$Year):max(data.use$Year)
 # Create a data frame with the numeric predictors we care about (the spline terms)
 dat.clim.cc <- data.frame(Year=yrs,
@@ -347,7 +406,8 @@ for(SPP in spp.use){
   load(file.path(dir.out, paste0("gam_clim_cc_", SPP, ".Rdata")))
   
   # Create a data frame with just what we need for the clim.cc model
-  gam.clim.cc$gam$formula
+  # gam.clim.cc$gam$formula
+  # summary(gam.clim.cc$gam)
   
   pred.clim.cc <- post.distns(model.gam=gam.clim.cc, n=n, newdata=dat.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), terms=T)
   deriv.clim.cc <- calc.derivs(model.gam=gam.clim.cc, newdata=dat.spp, vars=c("dbh.recon", "Year", "tmean", "precip", "vpd.max"), return.sims = T)
@@ -464,188 +524,265 @@ plot.climate(clim.cc.out[,], canopy=T, species=T)
 dev.off()
 
 #Now pasting in the results
-#"For example, Tsuga canadensis continues to display the most reduced growth with warming temperatures below 16˚C than other species across overstory (mean slope = XX±XX), middle (mean slope = XX±XX), and understory trees (mean slope = XX±XX)."
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<16,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<16,]*100, 2, mean, na.rm=T), na.rm=T)
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<16,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<16,]*100, 2, mean, na.rm=T), na.rm=T)
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<16,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<16,]*100, 2, mean, na.rm=T), na.rm=T)
-
-
-# "Similarly, overstory Fagus grandifolia had a linear, positve effect of precipitation on growth that was more sensitive than observed in the species-only model (mean slope = XX±XX), which is balanced by the understory trees of the same species have a mostly non-significant precipitation effect (mean slope = XX±XX)."
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T) 
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T) 
-
-
-# "Quercus rubra continued to show the strongest VPDmax responses across species with a mean effect across canopy strata of XX±XX for the observed VPD range."
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU"  & deriv.cc.out$ci$var=="vpd.max" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU"  & deriv.cc.out$ci$var=="vpd.max" ,]*100, 2, mean, na.rm=T), na.rm=T)
 
 
 #######################
 # Temperature
 #######################
-# "Within individual species, understory trees had temperature sensitivities that ranged from farily similar to overstory in Quercus rubra to over 17 times more sensitive in Fagus grandifolia (Figure 4). "
-mean(abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean","mean"])/abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean","mean"]), na.rm=T)
+# -----------
+# Tsuga canadensis
+# Growth of overstory Tsuga canadensis decreased XX ± XX %BAI/˚C at temperatures below X ˚C, but increased XX ± XX %BAI/˚C above X˚C.  In contrast, understory Tsuga canadensis showed consistent negative growth sensitivity of XXX ± XX %BAI/˚C at temperatures above X˚C.  
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean",])
 
-mean(abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean","mean"])/abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean","mean"]), na.rm=T)
+#Canopy
+round(max(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,"tmean"]), 1)
 
-mean(abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean","mean"])/abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean","mean"]), na.rm=T)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0 ,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0 ,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-mean(abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean","mean"])/abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean","mean"]), na.rm=T)
+round(min(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0 ,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0 ,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-# "Overall, understory trees benefited more from cooler conditions with observed relative growth of XX ± XX %BAI at temperatures less than 16 ˚C compared to XX ± XX %BAI for overstory trees over the same range." 
-mean(apply(pred.clim.cc$sims[clim.cc.out$Species=="QURU" & clim.cc.out$Canopy.Class=="Understory" & clim.cc.out$Effect=="tmean" & clim.cc.out$x<16 ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(pred.clim.cc$sims[clim.cc.out$Species=="QURU" & clim.cc.out$Canopy.Class=="Understory" & clim.cc.out$Effect=="tmean" & clim.cc.out$x<16 ,]*100, 2, mean, na.rm=T), na.rm=T)
+# Understory
+round(min(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),"tmean"]), 1)
 
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-mean(apply(pred.clim.cc$sims[clim.cc.out$Species=="QURU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="tmean" & clim.cc.out$x<16 ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(pred.clim.cc$sims[clim.cc.out$Species=="QURU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="tmean" & clim.cc.out$x<16 ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
 
-
-# "Shapes of temperature sensitivity was most similar in Acer rubrum where overstory and middle canopy strata had similar optimal temperatures of 18.8˚C and 18.5˚C, respecitvely, and understory trees had their optimal growth at 15.4."
-mean(clim.cc.out[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="tmean" &  !is.na(clim.cc.out$mean.bai) & clim.cc.out$mean.bai==max(clim.cc.out$mean.bai[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="tmean" ], na.rm=T),"x"], na.rm=T)
-
-mean(clim.cc.out[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Middle" & clim.cc.out$Effect=="tmean" &  !is.na(clim.cc.out$mean.bai) & clim.cc.out$mean.bai==max(clim.cc.out$mean.bai[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Middle" & clim.cc.out$Effect=="tmean" ], na.rm=T),"x"], na.rm=T)
-
-mean(clim.cc.out[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Understory" & clim.cc.out$Effect=="tmean" &  !is.na(clim.cc.out$mean.bai) & clim.cc.out$mean.bai==max(clim.cc.out$mean.bai[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Understory" & clim.cc.out$Effect=="tmean" ], na.rm=T),"x"], na.rm=T)
-
-# "In contrast, the lack of temperature sensitivity in overstory Fagus grandifolia (XX ± XXX %BAI/˚C) coincided with a mean temperature sensitivity of XX ± XX %BAI/˚C in the understory."
+# -----------
+# Fagus grandifolia
+# Fagus grandifolia displayed the greatest similarity in growth sensitivity between the understory and overstory with mean sensitivity of XXX ± XXX %BAI/˚C and XXX±XXX %BAI/˚C above X˚C and X˚C, respectively.  Middle-canopy trees of Fagus grandifolia were insensitive to temperature.  
+# -----------
 summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean",])
+
+round(min(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+
+round(min(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+# -----------
 
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
+# ACRU
+# Acer rubrum was not sensitive to temperature in the overstory (Appendix S1 Table S3), negative temperature sensitivity with warm temeratures was seen in both the middle-canopy  (XX ± XX %BAI/˚C above X˚C) and understory (XX ± XX %BAI/˚C above X˚C).
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean",])
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" ,]*100, 2, mean, na.rm=T), na.rm=T)
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean"& !is.na(deriv.cc.out$ci$sig),])
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-
-# "Overstory Quercus rubra trees displayed a nearly linear, positive effects of temperature on growth (mean slope = XX±XX) that was not reflected in the understory."
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" ,]*100, 2, mean, na.rm=T), na.rm=T)
-
-# "Understory Quercus rubra were insensitive to temperature below X˚C, above which growth was reduced as a rate of XX±XX %BAI/˚C."
-temp.min <- max(deriv.cc.out$ci$tmean[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$var=="tmean" & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-summary(clim.cc.out[clim.cc.out$Species=="QURU" & clim.cc.out$Canopy.Class=="Understory" & clim.cc.out$Effect=="tmean" & clim.cc.out$x>temp.min & !is.na(clim.cc.out$mean.bai),], na.rm=T)
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean>temp.min & !is.na(deriv.cc.out$ci$tmean),]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean>temp.min & !is.na(deriv.cc.out$ci$tmean),]*100, 2, mean, na.rm=T), na.rm=T)
-
-# "Overstory Tsuga canadensis trees displayed weakly negative temperature sensitivity below XXXX ˚C (XX±XX %BAI/˚C) and slightly positive sensitivity above XX ˚C (XX ± XX %BAI/˚C)"
-temp.min <- min(deriv.cc.out$ci$tmean[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-temp.max <- max(deriv.cc.out$ci$tmean[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & is.na(deriv.cc.out$ci$sig)], na.rm=T)
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<temp.min & !is.na(deriv.cc.out$ci$tmean),]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean<temp.min & !is.na(deriv.cc.out$ci$tmean),]*100, 2, mean, na.rm=T), na.rm=T)
+# round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"tmean"]), 1)
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean"& !is.na(deriv.cc.out$ci$sig),])
+round(min(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+# -----------
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean>temp.max & !is.na(deriv.cc.out$ci$tmean),]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean>temp.max & !is.na(deriv.cc.out$ci$tmean),]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
+# QURU
+# Despite overall positive temperature sensitivity of overstory Quercus rubra (XX ± XX %BAI/˚C below X˚C), growth of understory trees was insensitive to temperatures in our study.
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="tmean",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean",])
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean",]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" ,]*100, 2, mean, na.rm=T), na.rm=T)
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean"& !is.na(deriv.cc.out$ci$sig),])
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-temp.u <- range(deriv.cc.out$ci$tmean[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" ], na.rm=T)
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean>=temp.u[1] & deriv.cc.out$ci$tmean<=temp.u[2],]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="tmean" & deriv.cc.out$ci$tmean>=temp.u[1] & deriv.cc.out$ci$tmean<=temp.u[2],]*100, 2, mean, na.rm=T), na.rm=T)
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean"& !is.na(deriv.cc.out$ci$sig),])
+round(min(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),"tmean"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="tmean" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+
+# -----------
 #######################
-
-
 
 #######################
 # Precipitation
 #######################
-# "Consistent with the species-only model, overstory Fagus grandifolia and Tsuga canadensis showed had positive precipitation effects with mean sensitivities of XX±XX %BA/mm and XX±XX %BAI/mm, respectively."
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
+# Tsuga canadensis
+# When climate sensitivity is analyzed by canopy position, overstory Tsuga canadensis and Fagus grandifolia display nearly linear, positive sensitivity to precipitation (XX ± XX %BAI/mm and XX ± XX %BAI/mm, respectively). 
+# In the case of Tsuga canadensis, growth declined in the understory with increasing preciptiation at levels above XX mm (XX ± XX %BAI/mm).  
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="precip",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip",])
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-# ".  Both understory trees of these same species saw increase growth with more precipitation for the dry end of observed conditions (0.05 ± 0.2 %BAI/mm for Fagus below 523 mm; 0.04 ± 0.02 %BAI/mm for Tsuga below 439 mm). However, both species showed decreased growth in the understory at higher levels of precipitation (-0.06 ± 0.02 %BAI/mm for Fagus; -0.08 ± 0.02 for Tsuga)."  
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" ,])
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" ,])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig),])
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"precip"]))
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-ns.tsca.min <- min(deriv.cc.out$ci$precip[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="precip"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-ns.fagr.min <- min(deriv.cc.out$ci$precip[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$var=="precip"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-ns.tsca.max <- max(deriv.cc.out$ci$precip[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$var=="precip"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-ns.fagr.max <- max(deriv.cc.out$ci$precip[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$var=="precip"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,"precip"]))
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
-ns.fagr.min
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip<ns.fagr.min,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip<ns.fagr.min ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
 
-ns.tsca.min
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip<ns.tsca.min,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip<ns.tsca.min ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
+# Fagus grandifolia
+# When climate sensitivity is analyzed by canopy position, overstory Tsuga canadensis and Fagus grandifolia display nearly linear, positive sensitivity to precipitation (XX ± XX %BAI/mm and XX ± XX %BAI/mm, respectively). 
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="precip",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip",])
 
-ns.fagr.max
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip>ns.fagr.max,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip>ns.fagr.max ,]*100, 2, mean, na.rm=T), na.rm=T)
-ns.tsca.max
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip>ns.tsca.max,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" &  deriv.cc.out$ci$precip>ns.tsca.max ,]*100, 2, mean, na.rm=T), na.rm=T)
-
-"All canopy strata of Quercus rubra showed similar patterns in precipitation responses, but understory trees were X times more sensitive than the overstory at precipitation greater than 567 mm (XX±XX %BAI/mm and XX±XX %BAI/mm, respectively)"
-mean(abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip","mean"])/abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip","mean"]), na.rm=T)
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T)
-
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,]*100, 2, mean, na.rm=T), na.rm=T)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
 
 
-# "Above XXX mm precipitation, growth of overstory Acer rubrum was insensitive to precipitation (mean slope = XX±XX) even though understory trees displayed strong negative responses (mean slope = XX±XX). "
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" ,])
-ns.acru.min <- min(deriv.cc.out$ci$precip[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$var=="precip"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-ns.acru.max <- max(deriv.cc.out$ci$precip[deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$var=="precip"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
+# -----------
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
+# Acer rubrum
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="precip",]) # Intermediate NOT snsitive
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip",])
 
-
-# "Mean growth rates of overstory trees reviving less than 400 mm precipitation ranged from -15.2 ± 3.7 %BAI in Fagus grandifolia to -6.9 ± 3.2 %BAI in Quercus rubra."
-mean(apply(pred.clim.cc$sims[clim.cc.out$Species=="TSCA" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(pred.clim.cc$sims[clim.cc.out$Species=="TSCA" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T)
-
-mean(apply(pred.clim.cc$sims[clim.cc.out$Species=="FAGR" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(pred.clim.cc$sims[clim.cc.out$Species=="FAGR" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T)
-
-mean(apply(pred.clim.cc$sims[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(pred.clim.cc$sims[clim.cc.out$Species=="ACRU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T)
-
-mean(apply(pred.clim.cc$sims[clim.cc.out$Species=="QURU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(pred.clim.cc$sims[clim.cc.out$Species=="QURU" & clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T)
+# Comparing paired sensitivities
+d.acru <- deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",] - deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip",]
+quantile(d.acru, c(0.025,0.975), na.rm=T)
 
 
-# "Across all species, understory trees showed a mean increase in growth relative to the overstory counterparts of XXX±XXX %BAI. "
-mean(apply(pred.clim.cc$sims[clim.cc.out$Canopy.Class=="Understory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100 - pred.clim.cc$sims[clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(pred.clim.cc$sims[clim.cc.out$Canopy.Class=="Understory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100 - pred.clim.cc$sims[clim.cc.out$Canopy.Class=="Overstory" & clim.cc.out$Effect=="precip" & clim.cc.out$x<400 ,]*100, 2, mean, na.rm=T), na.rm=T); 
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"precip"]))
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,"precip"]))
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,"precip"]))
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"precip"]))
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+# -----------
+
+# -----------
+# Quercus rubra
+# For Quercus rubra trees in all canopy positions showed similar trends as observed in the species-only model with a cross-group sensisitivity of XXX ± XXX %BAI/mm above X mm.
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="precip",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip",])
+
+d.quru <- deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip",] - deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip",]
+quantile(d.quru, c(0.025,0.975), na.rm=T)
+
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig),"precip"]))
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig),"precip"]))
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"precip"]))
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"precip"]))
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,"precip"]))
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean<0,"precip"]))
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig),"precip"]))
+
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$var=="precip" & deriv.cc.out$ci$precip>500,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & deriv.cc.out$ci$precip>500,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,"precip"]))
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="precip" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$mean>0,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+
+# -----------
+
 #######################
-
 
 #######################
 # VPD
 #######################
-# "For all species, overstory and middle-canopy trees had similar responses to VPDmax (Fig. 4) with trends ranging from mostly insensitive in overstory Fagus grandiolia (0.06 ± 0.24 %BAI/kPa) strongly negative in overstory Quercus rubra (-0.83 ± 0.16 %BAI/kPa). " 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
+# Tsuga canadensis
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max",])
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T)
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" ,])
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),"vpd.max"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$vpd.max<81,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$vpd.max<81,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2)
+
+# -----------
+
+# -----------
+# Fagus grandifolia
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max",])
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),"vpd.max"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2) 
+
+# -----------
+
+# -----------
+# Acer rubrum
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max",])
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),"vpd.max"]), 1)
+
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$vpd.max<81,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$vpd.max<81,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2) 
+# -----------
+
+# -----------
+# Quercus rubra
+# -----------
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="I" & deriv.cc.out$ci$var=="vpd.max",])
+summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max",])
+
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),"vpd.max"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$vpd.max<81,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig) & deriv.cc.out$ci$vpd.max<81,1:100], 2, mean, na.rm=T)*100, na.rm=T), 2) 
 
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T)
+round(range(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),"vpd.max"]), 1)
+round(mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2); round(sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & !is.na(deriv.cc.out$ci$sig),1:100], 2, mean, na.rm=T)*100, na.rm=T), 2) 
 
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$precip>=ns.acru.min ,]*100, 2, mean, na.rm=T), na.rm=T)
+# -----------
 
-
-
-# "Understory Tsuga canadensis and Acer rubrum were both insensitive to VPDmax across the full range of observed conditions. "
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="TSCA" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" ,])
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="ACRU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" ,])
-
-
-
-
-# "Understory Quercus rubra is half as sensitive to VPDmax as its overstory counterparts below 72 kPa, above which point growth of the understory is not affected by variability in VPDmax."
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" ,])
-ns.quru <- range(deriv.cc.out$ci$vpd.max[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$var=="vpd.max"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-uquru <- range(deriv.cc.out$ci$vpd.max[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$var=="vpd.max"], na.rm=T)
-
-mean(abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$vpd.max<ns.quru[1],"mean"]), na.rm=T)/mean(abs(deriv.cc.out$ci[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="Canopy" & deriv.cc.out$ci$var=="vpd.max"  & deriv.cc.out$ci$vpd.max<ns.quru[1] & deriv.cc.out$ci$vpd.max>=uquru[1],"mean"]), na.rm=T)
-
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$vpd.max<ns.quru[1] ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="QURU" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$vpd.max<ns.quru[1] ,]*100, 2, mean, na.rm=T), na.rm=T)
-
-# "In contrast, understory Fagus grandifolia is only sensitive to the higher range of VPDmax (XX ± XX %BAI/kPA above XXX kPa)."
-summary(deriv.cc.out$ci[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" ,])
-ns.fagr <- range(deriv.cc.out$ci$vpd.max[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$var=="vpd.max"  & is.na(deriv.cc.out$ci$sig)], na.rm=T)
-ufagr <- range(deriv.cc.out$ci$vpd.max[deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$var=="vpd.max"], na.rm=T)
-
-mean(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$vpd.max>ns.fagr[2] ,]*100, 2, mean, na.rm=T), na.rm=T); sd(apply(deriv.cc.out$sims[deriv.cc.out$ci$Species=="FAGR" & deriv.cc.out$ci$Canopy.Class=="U" & deriv.cc.out$ci$var=="vpd.max" & deriv.cc.out$ci$vpd.max>ns.fagr[2],]*100, 2, mean, na.rm=T), na.rm=T)
 
 #######################
 
-# ----------
+# ---------------------------------------------
 
 # --------------------------------
+
+
+load(file.path(dir.out, "gam_clim_cc_TSCA.Rdata"))
+cc.tsca <- gam.clim.cc
+
+load(file.path(dir.out, "gam_clim_cc_FAGR.Rdata"))
+cc.fagr <- gam.clim.cc
+
+load(file.path(dir.out, "gam_clim_cc_ACRU.Rdata"))
+cc.acru <- gam.clim.cc
+
+load(file.path(dir.out, "gam_clim_cc_QURU.Rdata"))
+cc.quru <- gam.clim.cc
+
+
+summary(cc.tsca$gam)$s.table[1:9,]
+
+clim.sig <- data.frame(TSCA=round(summary(cc.tsca$gam)$s.table[1:9,"p-value"], 3),
+                       FAGR=round(summary(cc.fagr$gam)$s.table[1:9,"p-value"], 3),
+                       ACRU=round(summary(cc.acru$gam)$s.table[1:9,"p-value"], 3),
+                       QURU=round(summary(cc.quru$gam)$s.table[1:9,"p-value"], 3))
+
+clim.sig
