@@ -108,6 +108,7 @@ for(SPP in spp.use){
   # anova(gam.clim.base) 
   
   save(gam.clim.spp, file=file.path(dir.out, paste0("gam_clim_spp_", SPP, ".Rdata")))
+  rm(gam.clim.spp)
   # ----------
   
 
@@ -145,6 +146,7 @@ for(SPP in spp.use){
   mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(data.use$BA.inc[data.use$Species==SPP])-pred.cc1)^2))
   
   save(gam.clim.cc, file=file.path(dir.out, paste0("gam_clim_cc_", SPP, ".Rdata")))
+  rm(gam.clim.cc)
   # ----------
 }
 # ----------

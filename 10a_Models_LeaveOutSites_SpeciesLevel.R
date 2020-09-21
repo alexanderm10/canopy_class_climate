@@ -120,6 +120,7 @@ for(SPP in spp.use){
     # anova(gam.clim.base) 
     
     save(gam.clim.spp, file=file.path(dir.out, paste0("gam_clim_spp_", SPP, "_", SITE, ".Rdata")))
+    rm(gam.clim.spp)
     # ----------
     
     
@@ -157,6 +158,7 @@ for(SPP in spp.use){
     mod.comp[mod.comp$Species==SPP & mod.comp$Site.Removed==SITE & mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(dat.site$BA.inc)-pred.cc1)^2))
     
     save(gam.clim.cc, file=file.path(dir.out, paste0("gam_clim_cc_", SPP, "_", SITE, ".Rdata")))
+    rm(gam.clim.cc)
     # ----------
   } # End site removal
   
