@@ -76,13 +76,14 @@ summary(data.use)
 mod.comp <- data.frame(Model=rep(c("climate.spp", "climate.cc"), each=length(spp.use)*length(unique(data.use$Site.Code))),
                        Site.Removed=rep(rep(unique(data.use$Site.Code), 2), each=length(spp.use)),
                        Species=rep(spp.use),
-                       r.sq=NA, dev.expl=NA, AIC=NA, RMSE=NA)
+                       r.sq=NA, AIC=NA, RMSE=NA)
 
 for(SPP in spp.use){
-  print(paste("working on speices:", SPP) )
+  print(paste("working on species:", SPP) )
   dat.spp <- data.use[data.use$Species==SPP,]
   
   for(SITE in unique(dat.spp$Site.Code)){
+    print(paste("     - site:", SITE) )
     dat.site <- dat.spp[dat.spp$Site.Code!=SITE,]
     if(SPP %in% c("FAGR", "QURU")){
       gam.clim.spp <- gamm(log(BA.inc)~
@@ -113,7 +114,7 @@ for(SPP in spp.use){
     # mod.comp[mod.comp$Species==SPP & mod.comp$Model=="climate.spp", "dev.expl"] <- summary(gam.clim.spp)$dev.expl # explained deviance
     mod.comp[mod.comp$Species==SPP & mod.comp$Site.Removed==SITE & mod.comp$Model=="climate.spp", "AIC"] <- AIC(gam.clim.spp$lme)
     
-    pred.comp <- predict(gam.clim.spp$gam, data.use[data.use$Species==SPP,])
+    pred.comp <- predict(gam.clim.spp$gam, dat.site)
     mod.comp[mod.comp$Species==SPP & mod.comp$Site.Removed==SITE & mod.comp$Model=="climate.spp", "RMSE"] <- sqrt(mean((log(dat.site$BA.inc)-pred.comp)^2))
     
     # anova(gam.clim.base) 
@@ -151,7 +152,7 @@ for(SPP in spp.use){
     mod.comp[mod.comp$Species==SPP & mod.comp$Site.Removed==SITE & mod.comp$Model=="climate.cc", "AIC"] <- AIC(gam.clim.cc$lme)
     # anova(gam.clim.cc) 
     
-    pred.cc1 <- predict(gam.clim.cc$gam, data.use[data.use$Species==SPP,])
+    pred.cc1 <- predict(gam.clim.cc$gam, dat.site)
     # pred.cc2 <- predict(gam.clim.cc$lme, newdata=data.use[data.use$Species==SPP,])
     mod.comp[mod.comp$Species==SPP & mod.comp$Site.Removed==SITE & mod.comp$Model=="climate.cc", "RMSE"] <- sqrt(mean((log(dat.site$BA.inc)-pred.cc1)^2))
     
@@ -161,3 +162,12 @@ for(SPP in spp.use){
   
 }
 # ----------
+
+# Save Table of Site Outputs
+mod.comp
+mod.comp$r.sq <- round(mod.comp$r.sq, 3)
+# mod.comp$dev.expl <- round(mod.comp$dev.expl, 3)
+mod.comp$AIC <- round(mod.comp$AIC, 0)
+mod.comp$RMSE <- round(mod.comp$RMSE, 3)
+
+write.csv(mod.comp, file.path(dir.out, "ModComparison_SiteLeaveOut.csv"), row.names=F)
