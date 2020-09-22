@@ -88,10 +88,10 @@ for(SPP in spp.use){
     if(SPP %in% c("FAGR", "QURU")){
       gam.clim.spp <- gamm(log(BA.inc)~
                              s(tmean, k=3) +
-                             # s(precip, k=3) +
-                             # s(vpd.max, k=3) +
-                             # s(dbh.recon, k=3, by=Species) +
-                             # s(Year, k=4, by=PlotID)+
+                             s(precip, k=3) +
+                             s(vpd.max, k=3) +
+                             s(dbh.recon, k=3, by=Species) +
+                             s(Year, k=4, by=PlotID)+
                              PlotID,
                            random=list(Site.Code=~1, PlotID=~1, TreeID=~1),
                            data=dat.site)
