@@ -131,6 +131,7 @@ for(SPP in spp.use){
 
 clim.spp.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.spp.out[,c("mean", "lwr", "upr")])
 clim.spp.out$Site.Code <- factor(clim.spp.out$Site.Code, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
+clim.spp.out$Species <- factor(clim.spp.out$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
 
 summary(clim.spp.out)
 
@@ -162,37 +163,21 @@ for(SPP in unique(clim.spp.out$Species)){
 
 
 
-
-# png(file.path(dir.out, "YearResponse_Spp.png"), height=8, width=8, unit="in", res=120)
-# ggplot(data=clim.spp.out[clim.spp.out$Effect=="Year",]) +
-#   ggtitle("Species Climate Model, Year Response") +
-#   facet_wrap(~PlotID, scales="free_y") +
-#   geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species, group=Site.Code), alpha=0.5) +
-#   geom_line(aes(x=x, y=mean.bai, color=Species, group=Site.Code))
-# dev.off()
-
-# png(file.path(dir.out, "SizeResponse_Spp.png"), height=8, width=8, unit="in", res=120)
-ggplot(data=clim.spp.out[clim.spp.out$Effect=="dbh.recon",]) +
-  ggtitle("Species Climate Model, Size Response") +
-  geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Species, group=Site.Code), alpha=0.5) +
-  geom_line(aes(x=x, y=mean.bai, color=Species, group=Site.Code))
-# dev.off()
-
 # for(SPP in unique(clim.cc.out$Species)){
-  png(file.path(dir.out, paste0("ClimateResponse_LeaveOutSite_SPP_", "All", ".png")), height=8, width=10, unit="in", res=180)
+png(file.path(dir.out, paste0("ClimateResponse_LeaveOutSite_SPP_", "All", ".png")), height=8, width=10, unit="in", res=180)
   print(
     ggplot(data=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", "vpd.max"),]) +
       ggtitle("Species-Based Model") +
       facet_grid(Species~Effect, scales="free_x") +
-      geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Site.Code, group=Site.Code), alpha=0.25) +
-      geom_line(aes(x=x, y=mean.bai, color=Site.Code, group=Site.Code), size=1.25) +
-      scale_color_manual(name="SiteOut", values=c("HO"="#3288bd", "GB"="#66c2a5", "RH"="#abdda4", "GE"="#e6f598", "PS"="#fee08b", "NR"="#fdae61", "HF"="#f46d43", "LF"="#d53e4f")) +
-      scale_fill_manual(name="SiteOut", values=c("HO"="#3288bd", "GB"="#66c2a5", "RH"="#abdda4", "GE"="#e6f598", "PS"="#fee08b", "NR"="#fdae61", "HF"="#f46d43", "LF"="#d53e4f")) +
-      coord_cartesian(ylim=c(0.75, 1.5)) +
+      geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Site.Code, group=Site.Code), alpha=0.25) +
+      geom_line(aes(x=x, y=mean.bai*100, color=Site.Code, group=Site.Code), size=1.25) +
+      scale_y_continuous(name="Relativized BAI (%)") +
+      scale_fill_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
+      scale_color_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
+      coord_cartesian(ylim=c(0.75, 1.5)*100) +
       theme_bw()
   )
-  dev.off()
-# }
+dev.off()
 
 # dev.off()
 # ----------
@@ -258,6 +243,8 @@ for(SPP in spp.use){
   }
 }  
 clim.cc.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.cc.out[,c("mean", "lwr", "upr")])
+clim.cc.out$Species <- factor(clim.cc.out$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
+clim.cc.out$SiteOut <- factor(clim.cc.out$SiteOut, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
 summary(clim.cc.out)
 
 
@@ -288,8 +275,6 @@ for(SPP in unique(clim.cc.out$Species)){
   
 } # End species
 
-unique(clim.cc.out$SiteOut)
-clim.cc.out$SiteOut <- factor(clim.cc.out$SiteOut, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
 summary(clim.cc.out)
 
 # Broken by Canopy 
@@ -299,11 +284,12 @@ for(SPP in unique(clim.cc.out$Species)){
   ggplot(data=clim.cc.out[clim.cc.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.cc.out$Species==SPP,]) +
     ggtitle(paste0("Canopy Climate Model - ", SPP)) +
     facet_grid(Canopy.Class~Effect, scales="free_x") +
-    geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=SiteOut, group=SiteOut), alpha=0.25) +
-    geom_line(aes(x=x, y=mean.bai, color=SiteOut, group=SiteOut), size=1.25) +
-    scale_color_manual(values=c("HO"="#3288bd", "GB"="#66c2a5", "RH"="#abdda4", "GE"="#e6f598", "PS"="#fee08b", "NR"="#fdae61", "HF"="#f46d43", "LF"="#d53e4f")) +
-    scale_fill_manual(values=c("HO"="#3288bd", "GB"="#66c2a5", "RH"="#abdda4", "GE"="#e6f598", "PS"="#fee08b", "NR"="#fdae61", "HF"="#f46d43", "LF"="#d53e4f")) +
-    coord_cartesian(ylim=c(0.5, 2)) +
+    geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=SiteOut, group=SiteOut), alpha=0.25) +
+    geom_line(aes(x=x, y=mean.bai*100, color=SiteOut, group=SiteOut), size=1.25) +
+    scale_y_continuous(name="Relativized BAI (%)") +
+    scale_fill_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
+    scale_color_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
+    coord_cartesian(ylim=c(0.5, 2)*100) +
     theme_bw()
   )
   dev.off()
@@ -313,11 +299,12 @@ for(SPP in unique(clim.cc.out$Species)){
     ggplot(data=clim.cc.out[clim.cc.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.cc.out$Species==SPP ,]) +
       ggtitle(paste0("Canopy Climate Model -", SPP)) +
       facet_grid(SiteOut~Effect, scales="free_x") +
-      geom_ribbon(aes(x=x, ymin=lwr.bai, ymax=upr.bai, fill=Canopy.Class), alpha=0.25) +
-      geom_line(aes(x=x, y=mean.bai, color=Canopy.Class), size=1.25) +
+      geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Canopy.Class), alpha=0.25) +
+      geom_line(aes(x=x, y=mean.bai*100, color=Canopy.Class), size=1.25) +      
+      scale_y_continuous(name="Relativized BAI (%)") +
       scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
       scale_color_manual(values=c("#E69F00","#009E73", "#0072B2")) +
-      coord_cartesian(ylim=c(0.5, 2)) +
+      coord_cartesian(ylim=c(0.5, 2)*100) +
       theme_bw()
   )
   dev.off()
