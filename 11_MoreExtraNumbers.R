@@ -1,6 +1,9 @@
 library(ggplot2)
 library(gameofthrones)
 
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 3 - 2020-10/"
+dir.figs <- file.path(path.google, "figures")
+dir.create(dir.figs, recursive = T)
 
 # Summarizing the range of climatic conditions used to for each site
 met <- read.csv("processed_data/climate_growing_season.csv", stringsAsFactors = T)
@@ -75,7 +78,7 @@ summary(data.graph)
 data.use$Site.Code <- factor(data.use$Site.Code, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
 data.graph$Site.Code <- factor(data.graph$Site.Code, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
 
-hex.sites <- got(length(unique(data.use$Site.Code)), option="Daenerys")
+hex.sites <- gameofthrones::got(length(unique(data.use$Site.Code)), option="Daenerys")
 
 
 plot.base <-  ggplot(data=data.graph[,], aes(x=values, fill=Site.Code)) +
@@ -133,7 +136,10 @@ plot.vpd <- plot.base %+% subset(data.graph, Effect=="vpd.max") +
         axis.ticks.y=element_line(unit(-0.5, units="lines")),
         plot.margin = unit(c(4.75,1, 0.5, 0.5), "lines"))
 
-dir.out <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 3 - 2020-10/"
-png(file.path(dir.out, paste0("ClimateDataDensity.png")), height=8, width=10, unit="in", res=180)
+tiff(file.path(dir.figs,  paste0("SupplementalFigure07_ClimateDataDensity.tiff")), height=6, width=6, unit="in", res=600)
+cowplot::plot_grid(plot.tmean, plot.precip, plot.vpd, nrow=1, rel_widths = c(1, 1, 1.1))
+dev.off()
+
+pdf(file.path(dir.figs,  paste0("SupplementalFigure07_ClimateDataDensity.pdf")), height=6, width=6)
 cowplot::plot_grid(plot.tmean, plot.precip, plot.vpd, nrow=1, rel_widths = c(1, 1, 1.1))
 dev.off()

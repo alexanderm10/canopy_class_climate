@@ -15,8 +15,14 @@ library(ggplot2)
 library(car)
 
 # Set up a directory where to save things & not overwrite past efforts
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 3 - 2020-10/"
+dir.figs <- file.path(path.google, "figures")
+dir.create(dir.figs, recursive = T, showWarnings = F)
+
 dir.out <- "processed_data/gam_results_SiteSensitivity/"
 dir.create(dir.out, recursive=T, showWarnings = F)
+
+source("0_GraphEffects.R")
 
 # --------------------------------
 # 1. Read in & format data
@@ -130,9 +136,6 @@ for(SPP in spp.use){
 } # End species loop
 
 clim.spp.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.spp.out[,c("mean", "lwr", "upr")])
-clim.spp.out$Site.Code <- factor(clim.spp.out$Site.Code, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
-clim.spp.out$Species <- factor(clim.spp.out$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-
 summary(clim.spp.out)
 
 # Trimming out size fits
@@ -161,25 +164,19 @@ for(SPP in unique(clim.spp.out$Species)){
 
 } # End species
 
+clim.spp.out$Site <- factor(clim.spp.out$Site.Code, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
+clim.spp.out$Species <- factor(clim.spp.out$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
 
 
-# for(SPP in unique(clim.cc.out$Species)){
-png(file.path(dir.out, paste0("ClimateResponse_LeaveOutSite_SPP_", "All", ".png")), height=8, width=10, unit="in", res=180)
-  print(
-    ggplot(data=clim.spp.out[clim.spp.out$Effect%in% c("tmean", "precip", "vpd.max"),]) +
-      ggtitle("Species-Based Model") +
-      facet_grid(Species~Effect, scales="free_x") +
-      geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Site.Code, group=Site.Code), alpha=0.25) +
-      geom_line(aes(x=x, y=mean.bai*100, color=Site.Code, group=Site.Code), size=1.25) +
-      scale_y_continuous(name="Relativized BAI (%)") +
-      scale_fill_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
-      scale_color_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
-      coord_cartesian(ylim=c(0.75, 1.5)*100) +
-      theme_bw()
-  )
+
+tiff(file.path(dir.figs, "SupplementalFigure08_SiteOut-Species_ClimateEffect.tiff"), height=6, width=6, unit="in", res=600)
+plot.climate.sites(dat.plot=clim.spp.out, canopy=F, panel="sites")
 dev.off()
 
-# dev.off()
+pdf(file.path(dir.figs, "SupplementalFigure08_SiteOut-Species_ClimateEffect.pdf"), height=6, width=6)
+plot.climate.sites(dat.plot=clim.spp.out, canopy=F, panel="sites")
+dev.off()
+
 # ----------
 
 # ----------
@@ -243,9 +240,6 @@ for(SPP in spp.use){
   }
 }  
 clim.cc.out[,c("mean.bai", "lwr.bai", "upr.bai")] <- exp(clim.cc.out[,c("mean", "lwr", "upr")])
-clim.cc.out$Species <- factor(clim.cc.out$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
-clim.cc.out$SiteOut <- factor(clim.cc.out$SiteOut, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
-summary(clim.cc.out)
 
 
 for(SPP in unique(clim.cc.out$Species)){
@@ -277,37 +271,35 @@ for(SPP in unique(clim.cc.out$Species)){
 
 summary(clim.cc.out)
 
+clim.cc.out$Species <- factor(clim.cc.out$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
+clim.cc.out$Site <- factor(clim.cc.out$SiteOut, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
+clim.cc.out$Canopy.Class <- car::recode(clim.cc.out$Canopy.Class, "'Canopy'='Overstory'; 'I'='Middle'; 'U'='Understory'")
+clim.cc.out$Canopy.Class <- factor(clim.cc.out$Canopy.Class, levels=c("Overstory", "Middle", "Understory"))
+summary(clim.cc.out)
+
+
 # Broken by Canopy 
+fig.num = 9
 for(SPP in unique(clim.cc.out$Species)){
-  png(file.path(dir.out, paste0("ClimateResponse_LeaveOutSite_SPP-CC_", SPP, "_byCanopy.png")), height=8, width=8, unit="in", res=180)
-  print(
-  ggplot(data=clim.cc.out[clim.cc.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.cc.out$Species==SPP,]) +
-    ggtitle(paste0("Canopy Climate Model - ", SPP)) +
-    facet_grid(Canopy.Class~Effect, scales="free_x") +
-    geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=SiteOut, group=SiteOut), alpha=0.25) +
-    geom_line(aes(x=x, y=mean.bai*100, color=SiteOut, group=SiteOut), size=1.25) +
-    scale_y_continuous(name="Relativized BAI (%)") +
-    scale_fill_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
-    scale_color_manual(name="SiteOut", values=c("HO"="#792427FF", "GB"="#633D43FF", "RH"="#4E565FFF", "GE"="#36727EFF", "PS"="#438990FF", "NR"="#739B96FF", "HF"="#A2AC9CFF", "LF"="#D1BDA2FF"))+
-    coord_cartesian(ylim=c(0.5, 2)*100) +
-    theme_bw()
-  )
+  tiff(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupSites.tiff")), height=6, width=6, unit="in", res=600)
+  print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="sites", species = SPP))
   dev.off()
   
-  png(file.path(dir.out, paste0("ClimateResponse_LeaveOutSite_SPP-CC_", SPP, "_bySite.png")), height=8, width=8, unit="in", res=180)
-  print(
-    ggplot(data=clim.cc.out[clim.cc.out$Effect%in% c("tmean", "precip", "vpd.max") & clim.cc.out$Species==SPP ,]) +
-      ggtitle(paste0("Canopy Climate Model -", SPP)) +
-      facet_grid(SiteOut~Effect, scales="free_x") +
-      geom_ribbon(aes(x=x, ymin=lwr.bai*100, ymax=upr.bai*100, fill=Canopy.Class), alpha=0.25) +
-      geom_line(aes(x=x, y=mean.bai*100, color=Canopy.Class), size=1.25) +      
-      scale_y_continuous(name="Relativized BAI (%)") +
-      scale_fill_manual(values=c("#E69F00","#009E73", "#0072B2"))+
-      scale_color_manual(values=c("#E69F00","#009E73", "#0072B2")) +
-      coord_cartesian(ylim=c(0.5, 2)*100) +
-      theme_bw()
-  )
+  pdf(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupSites.pdf")), height=6, width=6)
+  print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="sites", species = SPP))
   dev.off()
+  
+  fig.num <- fig.num+1 # Go to the next number 
+  
+  tiff(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupCanopy.tiff")), height=6, width=6, unit="in", res=600)
+  print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="canopy", species = SPP))
+  dev.off()
+  
+  pdf(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupCanopy.pdf")), height=6, width=6)
+  print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="canopy", species = SPP))
+  dev.off()
+  
+  fig.num <- fig.num+1 # Go to the next number
 }
 
 

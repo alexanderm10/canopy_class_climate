@@ -3,7 +3,7 @@ library(car)
 library(gridExtra)
 library(grid)
 
-path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 1 2019-12"
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 3 - 2020-10/"
 dir.figs <- file.path(path.google, "figures")
 dir.create(dir.figs, recursive = T, showWarnings = F)
 

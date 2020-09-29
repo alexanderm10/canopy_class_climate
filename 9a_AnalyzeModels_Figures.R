@@ -15,7 +15,7 @@ library(car)
 dir.out <- "processed_data/gam_results_VarDecomp"
 if(!dir.exists(dir.out)) dir.create(dir.out, recursive=T, showWarnings = F)
 
-path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 2 2020-04/"
+path.google <- "/Volumes/GoogleDrive/My Drive/Manuscripts/Alexander_CanopyClimateResponse/canopy_and_climate/manuscript/Ecology (submit 2019-10)/Revision 3 - 2020-10/"
 dir.figs <- file.path(path.google, "figures")
 dir.create(dir.figs, recursive = T)
 
@@ -235,20 +235,20 @@ summary(clim.spp.out)
 summary(deriv.spp.out)
 
 
-tiff(file.path(dir.figs, "SupplementalFigure01_SppClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure03_SppClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(dat.plot=clim.spp.out)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure01_SppClim_SizeEffect.pdf"), height=4.5, width=3)
+pdf(file.path(dir.figs, "SupplementalFigure03_SppClim_SizeEffect.pdf"), height=4.5, width=3)
 plot.size(dat.plot=clim.spp.out[,])
 dev.off()
 
 
-tiff(file.path(dir.figs, "SupplementalFigure02_SppClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure04_SppClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(dat.plot=clim.spp.out[,])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure02_SppClim_YearEffect.pdf"), height=6, width=6)
+pdf(file.path(dir.figs, "SupplementalFigure04_SppClim_YearEffect.pdf"), height=6, width=6)
 plot.year(dat.plot=clim.spp.out[,])
 dev.off()
 
@@ -496,20 +496,20 @@ clim.cc.out$Canopy.Class <- factor(clim.cc.out$Canopy.Class, levels= c("Overstor
 summary(clim.cc.out)
 summary(deriv.cc.out)
 
-tiff(file.path(dir.figs, "SupplementalFigure03_HypothesisClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure05_HypothesisClim_SizeEffect.tiff"), height=4.5, width=3, unit="in", res=600)
 plot.size(clim.cc.out[,])
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure03_HypothesisClim_SizeEffect.pdf"), height=4.5, width=3)
+pdf(file.path(dir.figs, "SupplementalFigure05_HypothesisClim_SizeEffect.pdf"), height=4.5, width=3)
 plot.size(clim.cc.out)
 dev.off()
 
 
-tiff(file.path(dir.figs, "SupplementalFigure04_HypothesisClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
+tiff(file.path(dir.figs, "SupplementalFigure06_HypothesisClim_YearEffect.tiff"), height=6, width=6, unit="in", res=600)
 plot.year(clim.cc.out)
 dev.off()
 
-pdf(file.path(dir.figs, "SupplementalFigure04_HypothesisClim_YearEffect.pdf"), height=6, width=6)
+pdf(file.path(dir.figs, "SupplementalFigure06_HypothesisClim_YearEffect.pdf"), height=6, width=6)
 plot.year(clim.cc.out)
 dev.off()
 
