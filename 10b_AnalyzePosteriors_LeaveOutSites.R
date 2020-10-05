@@ -167,6 +167,9 @@ for(SPP in unique(clim.spp.out$Species)){
 clim.spp.out$Site <- factor(clim.spp.out$Site.Code, levels=c("HO", "GB", "RH", "GE", "PS", "NR", "HF", "LF"))
 clim.spp.out$Species <- factor(clim.spp.out$Species, levels=c("TSCA", "FAGR", "ACRU", "QURU"))
 
+png(file.path(dir.figs, "SupplementalFigure08_SiteOut-Species_ClimateEffect.png"), height=6, width=6, unit="in", res=600)
+plot.climate.sites(dat.plot=clim.spp.out, canopy=F, panel="sites")
+dev.off()
 
 
 tiff(file.path(dir.figs, "SupplementalFigure08_SiteOut-Species_ClimateEffect.tiff"), height=6, width=6, unit="in", res=600)
@@ -281,6 +284,11 @@ summary(clim.cc.out)
 # Broken by Canopy 
 fig.num = 9
 for(SPP in unique(clim.cc.out$Species)){
+  
+  png(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupSites.png")), height=6, width=6, unit="in", res=600)
+  print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="sites", species = SPP))
+  dev.off()
+  
   tiff(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupSites.tiff")), height=6, width=6, unit="in", res=600)
   print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="sites", species = SPP))
   dev.off()
@@ -290,6 +298,10 @@ for(SPP in unique(clim.cc.out$Species)){
   dev.off()
   
   fig.num <- fig.num+1 # Go to the next number 
+  
+  png(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupCanopy.png")), height=6, width=6, unit="in", res=600)
+  print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="canopy", species = SPP))
+  dev.off()
   
   tiff(file.path(dir.figs, paste0("SupplementalFigure", stringr::str_pad(fig.num, "0", width=2, side="left"),"_SiteOut-CanopyClass_", SPP, "_ClimateEffect_groupCanopy.tiff")), height=6, width=6, unit="in", res=600)
   print(plot.climate.sites(dat.plot=clim.cc.out, canopy=T, panel="canopy", species = SPP))
