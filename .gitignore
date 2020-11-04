@@ -32,3 +32,4 @@ publication materials/~$nopy_class_climate(1).docx
 *.csv
 canopy_class_tree_data.csv
 canopy_class_tree_data.csv
+.DS_Store
